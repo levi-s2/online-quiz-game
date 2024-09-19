@@ -1,12 +1,28 @@
 import React from 'react';
+import { Route, Routes, Navigate } from 'react-router-dom';
+import Home from './Home';
+import Quiz from './Quiz';
+import QuizList from './QuizList';
+import UserProfile from './UserProfile';
+import Scoreboard from './Scoreboard';
+import SubmitQuiz from './SubmitQuiz';
+import NavBar from './NavBar';
 
-
-function App() {
+const App = () => {
   return (
     <div>
-      <h1>online quiz game</h1>
+      <NavBar />
+      <Routes>
+        <Route path="/" element={<Home />} />
+        <Route path="/quiz/:id" element={<Quiz />} />
+        <Route path="/quizzes" element={<QuizList />} />
+        <Route path="/profile" element={<UserProfile />} />
+        <Route path="/scoreboard" element={<Scoreboard />} />
+        <Route path="/submit-quiz" element={<SubmitQuiz />} />
+        <Route path="*" element={<Navigate to="/" />} />
+      </Routes>
     </div>
-  )
-}
+  );
+};
 
 export default App;
