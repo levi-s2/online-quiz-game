@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { AppstoreOutlined, UserOutlined, LogoutOutlined, PlusOutlined, ReadOutlined } from '@ant-design/icons';
 import { Menu } from 'antd';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 
-const NavBar = () => {
+const NavBar = ({ isAuthenticated, logout }) => {
   const [current, setCurrent] = useState('');
   const location = useLocation();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const path = location.pathname.split('/')[1];
@@ -15,6 +16,14 @@ const NavBar = () => {
   const onClick = (e) => {
     setCurrent(e.key);
   };
+
+  const handleLogout = () => {
+    logout();  // Call the logout function
+    navigate('/');  // Navigate to landing page after logout
+  };
+
+  // Only show the navbar if the user is authenticated
+  if (!isAuthenticated) return null;
 
   const items = [
     {
@@ -46,7 +55,7 @@ const NavBar = () => {
       label: 'Logout',
       key: 'logout',
       icon: <LogoutOutlined />,
-      onClick: () => console.log('Logging out'),  
+      onClick: handleLogout,  // Call logout handler
     },
   ];
 
