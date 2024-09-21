@@ -79,7 +79,7 @@ export const UserProvider = ({ children }) => {
   }, [logout, fetchUser]);
 
   // Login function
-  const login = async (username, password) => {
+const login = async (username, password) => {
     try {
       const response = await axios.post('/login', { username, password });
       const { access_token, refresh_token, user } = response.data;
@@ -87,12 +87,13 @@ export const UserProvider = ({ children }) => {
       localStorage.setItem('refreshToken', refresh_token);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      navigate('/quizzes');  // Redirect to quizzes page after login
+      navigate('/quiz');  // Redirect to /quiz instead of /quizzes
     } catch (error) {
       console.error('Login error', error);
       throw error;
     }
   };
+  
 
   // Register function
   const register = async (username, password) => {

@@ -1,16 +1,18 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { AppstoreOutlined, UserOutlined, LogoutOutlined, PlusOutlined, ReadOutlined } from '@ant-design/icons';
 import { Menu } from 'antd';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { UserContext } from './context/UserContext';
 
-const NavBar = ({ isAuthenticated, logout }) => {
+const NavBar = () => {
+  const { logout } = useContext(UserContext);
   const [current, setCurrent] = useState('');
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
     const path = location.pathname.split('/')[1];
-    setCurrent(path || 'home');
+    setCurrent(path || 'quiz');
   }, [location]);
 
   const onClick = (e) => {
@@ -18,21 +20,18 @@ const NavBar = ({ isAuthenticated, logout }) => {
   };
 
   const handleLogout = () => {
-    logout();  // Call the logout function
-    navigate('/');  // Navigate to landing page after logout
+    logout();
+    navigate('/');
   };
-
-  // Only show the navbar if the user is authenticated
-  if (!isAuthenticated) return null;
 
   const items = [
     {
-      label: <Link to="/">Home</Link>,
-      key: 'home',
+      label: <Link to="/quiz">Quiz</Link>,
+      key: 'quiz',
       icon: <AppstoreOutlined />,
     },
     {
-      label: <Link to="/quizzes">Quizzes</Link>,
+      label: <Link to="/quizzes">My List</Link>,
       key: 'quizzes',
       icon: <ReadOutlined />,
     },
@@ -55,7 +54,7 @@ const NavBar = ({ isAuthenticated, logout }) => {
       label: 'Logout',
       key: 'logout',
       icon: <LogoutOutlined />,
-      onClick: handleLogout,  // Call logout handler
+      onClick: handleLogout,
     },
   ];
 
