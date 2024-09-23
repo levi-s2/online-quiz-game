@@ -3,7 +3,7 @@ from flask_migrate import Migrate
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
-from models import db, bcrypt, User, Category, Quiz, Question, Answer, Score
+from models import db, bcrypt, User, Category, Quiz, Question, Option, Score
 import os
 import traceback
 
@@ -27,6 +27,9 @@ class Home(Resource):
         return make_response(jsonify(response_dict), 200)
 
 
+api.add_resource(Home, '/')
+
+
 class QuizResource(Resource):
     def get(self):
         try:
@@ -35,6 +38,57 @@ class QuizResource(Resource):
             return make_response(jsonify(quiz_list), 200)
         except Exception as e:
             return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(QuizResource, '/quizzes')
+
+
+class CategoryResource(Resource):
+    def get(self):
+        try:
+            categories = Category.query.all()
+            category_list = [category.to_dict() for category in categories]
+            return make_response(jsonify(category_list), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(CategoryResource, '/categories')
+
+
+class QuizByCategoryResource(Resource):
+    def get(self):
+        try:
+            category_name = request.args.get('category')
+            if not category_name:
+                return make_response(jsonify({"error": "Category is required"}), 400)
+
+            category = Category.query.filter_by(name=category_name.lower()).first()
+            if not category:
+                return make_response(jsonify({"error": "Category not found"}), 404)
+
+            quizzes = Quiz.query.filter_by(category_id=category.id).all()
+            quiz_list = [quiz.to_dict() for quiz in quizzes]
+            return make_response(jsonify(quiz_list), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(QuizByCategoryResource, '/quizzes/by_category')
+
+
+class QuestionOptionsResource(Resource):
+    def get(self, question_id):
+        try:
+            question = Question.query.get(question_id)
+            if not question:
+                return make_response(jsonify({"error": "Question not found"}), 404)
+
+            options = Option.query.filter_by(question_id=question.id).all()
+            options_list = [option.to_dict() for option in options]
+            return make_response(jsonify(options_list), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(QuestionOptionsResource, '/questions/<int:question_id>/options')
+
 
 
 class Register(Resource):
@@ -49,7 +103,7 @@ class Register(Resource):
 
             existing_user = User.query.filter_by(username=username).first()
             if existing_user:
-                return {"message": "User with provided username already exists"}, 400
+                return {"message": "User with the provided username already exists"}, 400
 
             new_user = User(username=username)
             new_user.password_hash = password
@@ -57,7 +111,7 @@ class Register(Resource):
             db.session.add(new_user)
             db.session.commit()
 
-            return new_user.to_dict(), 201
+            return {"message": "User created successfully"}, 201
         except Exception as e:
             print(f"Error during registration: {e}")
             traceback.print_exc()
@@ -96,65 +150,47 @@ class TokenRefresh(Resource):
         return {"access_token": new_access_token}, 200
 
 
-class UserDetail(Resource):
-    @jwt_required()
-    def get(self, user_id):
-        try:
-            user = User.query.get(user_id)
-            if not user:
-                return {"message": "User not found"}, 404
-            return user.to_dict(), 200
-        except Exception as e:
-            print(f"Error fetching user: {e}")
-            traceback.print_exc()
-            return {"message": "Internal Server Error"}, 500
-
-    @jwt_required()
-    def patch(self, user_id):
-        try:
-            user = User.query.get(user_id)
-            if not user:
-                return {"message": "User not found"}, 404
-
-            data = request.get_json()
-            dark_mode = data.get('dark_mode')
-            username = data.get('username')
-
-            if dark_mode is not None:
-                user.dark_mode = dark_mode
-
-            if username:
-                user.username = username
-
-            db.session.commit()
-            return user.to_dict(), 200
-
-        except Exception as e:
-            print(f"Error updating user: {e}")
-            traceback.print_exc()
-            return {"message": "Internal Server Error"}, 500
-
-
 class Protected(Resource):
     @jwt_required()
     def get(self):
         try:
             current_user_id = get_jwt_identity()
             user = User.query.get(current_user_id)
-            return user.to_dict(), 200
+            return {"username": user.username}, 200
         except Exception as e:
             print(f"Error in protected resource: {e}")
             traceback.print_exc()
             return {"message": "Internal Server Error"}, 500
 
 
-api.add_resource(Home, '/')
-api.add_resource(QuizResource, '/quizzes')
+class Authenticate(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            data = request.get_json()
+            password = data.get('password')
+
+            if not password:
+                return {"message": "Password is required"}, 400
+
+            current_user_id = get_jwt_identity()
+            user = User.query.get(current_user_id)
+
+            if not user or not user.authenticate(password):
+                return {"message": "Invalid password"}, 401
+
+            return {"authenticated": True}, 200
+        except Exception as e:
+            print(f"Error during authentication: {e}")
+            traceback.print_exc()
+            return {"message": "Internal Server Error"}, 500
+
+
 api.add_resource(Register, '/register', endpoint='register_endpoint')
 api.add_resource(Login, '/login', endpoint='login_endpoint')
 api.add_resource(TokenRefresh, '/refresh', endpoint='refresh_endpoint')
-api.add_resource(UserDetail, '/users/<int:user_id>', endpoint='user_detail_endpoint')
 api.add_resource(Protected, '/protected', endpoint='protected_endpoint')
+api.add_resource(Authenticate, '/authenticate', endpoint='authenticate')
 
 
 with app.app_context():

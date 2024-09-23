@@ -1,5 +1,5 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Integer, String, Boolean, Text, ForeignKey
+from sqlalchemy import MetaData, Integer, String, Boolean, Text, ForeignKey, CheckConstraint
 from sqlalchemy.orm import relationship, validates
 from flask_bcrypt import Bcrypt
 
@@ -55,7 +55,6 @@ class Category(db.Model):
     id = db.Column(Integer, primary_key=True)
     name = db.Column(String(50), unique=True, nullable=False)
 
-    # Class attribute containing approved categories
     approved_categories = ['math', 'science', 'history', 'music', 'general knowledge']
 
     quizzes = relationship('Quiz', back_populates='category')
@@ -79,13 +78,13 @@ class Quiz(db.Model):
     __tablename__ = 'quizzes'
     
     id = db.Column(Integer, primary_key=True)
-    user_id = db.Column(Integer, ForeignKey('users.id'), nullable=True)  # user_id is nullable now
+    user_id = db.Column(Integer, ForeignKey('users.id'), nullable=True)
     category_id = db.Column(Integer, ForeignKey('categories.id'), nullable=False)
 
     user = relationship('User', back_populates='quizzes')
     category = relationship('Category', back_populates='quizzes')
     questions = relationship('Question', back_populates='quiz', cascade="all, delete-orphan")
-    score = relationship('Score', uselist=False, back_populates='quiz')
+    score = relationship('Score', back_populates='quiz', uselist=False)  # Ensure this is properly defined
 
     def to_dict(self):
         return {
@@ -94,12 +93,6 @@ class Quiz(db.Model):
             'category': self.category.to_dict(),
             'questions': [question.to_dict() for question in self.questions],
             'score': self.score.to_dict() if self.score else None
-        }
-
-    def to_dict_basic(self):
-        return {
-            'id': self.id,
-            'category': self.category.to_dict()
         }
 
     def __repr__(self):
@@ -114,7 +107,7 @@ class Question(db.Model):
     text = db.Column(Text, nullable=False)
 
     quiz = relationship('Quiz', back_populates='questions')
-    answers = relationship('Answer', back_populates='question', cascade="all, delete-orphan")
+    options = relationship('Option', back_populates='question', cascade="all, delete-orphan")
 
     @validates('text')
     def validate_text(self, key, text):
@@ -126,26 +119,27 @@ class Question(db.Model):
             'id': self.id,
             'quiz_id': self.quiz_id,
             'text': self.text,
-            'answers': [answer.to_dict() for answer in self.answers]
+            'options': [option.to_dict() for option in self.options]
         }
 
     def __repr__(self):
         return f'<Question {self.id}. Quiz: {self.quiz_id}>'
 
 
-class Answer(db.Model):
-    __tablename__ = 'answers'
+
+class Option(db.Model):
+    __tablename__ = 'options'
     
     id = db.Column(Integer, primary_key=True)
     question_id = db.Column(Integer, ForeignKey('questions.id'), nullable=False)
     text = db.Column(Text, nullable=False)
     is_correct = db.Column(Boolean, default=False)
 
-    question = relationship('Question', back_populates='answers')
+    question = relationship('Question', back_populates='options')
 
     @validates('text')
     def validate_text(self, key, text):
-        assert text is not None and len(text) > 0, "Answer text must not be empty"
+        assert text is not None and len(text) > 0, "Option text must not be empty"
         return text
 
     def to_dict(self):
@@ -157,7 +151,7 @@ class Answer(db.Model):
         }
 
     def __repr__(self):
-        return f'<Answer {self.id}. Question: {self.question_id}, Correct: {self.is_correct}>'
+        return f'<Option {self.id}. Question: {self.question_id}, Correct: {self.is_correct}>'
 
 
 class Score(db.Model):
@@ -169,7 +163,7 @@ class Score(db.Model):
     points = db.Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='scores')
-    quiz = relationship('Quiz', back_populates='score')
+    quiz = relationship('Quiz', back_populates='score')  # Ensure this matches the 'score' relationship in Quiz
 
     def to_dict(self):
         return {
