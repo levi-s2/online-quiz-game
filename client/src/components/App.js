@@ -7,14 +7,22 @@ import UserProfile from './UserProfile';
 import Scoreboard from './Scoreboard';
 import SubmitQuiz from './SubmitQuiz';
 import NavBar from './NavBar';
-import { UserProvider, UserContext } from './context/UserContext';
+import { UserContext, UserProvider } from './context/UserContext';
 
 const LayoutWithNavBar = ({ children }) => {
-  const { user } = useContext(UserContext);
+  const { user, loading } = useContext(UserContext);
+
+  if (loading) {
+    return <div>Loading...</div>; 
+  }
+
+  if (!user) {
+    return null; 
+  }
 
   return (
     <div>
-      {user && <NavBar />}
+      <NavBar />
       {children}
     </div>
   );
@@ -25,12 +33,21 @@ const App = () => {
     <UserProvider>
       <Routes>
         <Route path="/" element={<LandingPage />} />
-        <Route path="/quiz" element={<LayoutWithNavBar><Quiz /></LayoutWithNavBar>} />
-        <Route path="/quizzes" element={<LayoutWithNavBar><QuizList /></LayoutWithNavBar>} />
-        <Route path="/profile" element={<LayoutWithNavBar><UserProfile /></LayoutWithNavBar>} />
-        <Route path="/scoreboard" element={<LayoutWithNavBar><Scoreboard /></LayoutWithNavBar>} />
-        <Route path="/submit-quiz" element={<LayoutWithNavBar><SubmitQuiz /></LayoutWithNavBar>} />
-        <Route path="*" element={<Navigate to="/" />} />
+        <Route
+          path="*"
+          element={
+            <LayoutWithNavBar>
+              <Routes>
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/quizzes" element={<QuizList />} />
+                <Route path="/profile" element={<UserProfile />} />
+                <Route path="/scoreboard" element={<Scoreboard />} />
+                <Route path="/submit-quiz" element={<SubmitQuiz />} />
+                <Route path="*" element={<Navigate to="/" />} />
+              </Routes>
+            </LayoutWithNavBar>
+          }
+        />
       </Routes>
     </UserProvider>
   );

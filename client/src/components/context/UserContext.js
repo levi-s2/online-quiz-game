@@ -73,7 +73,7 @@ export const UserProvider = ({ children }) => {
           refreshToken();
         }
       }
-    }, 60000);  // Refresh token every 60 seconds if it’s about to expire
+    }, 60000); 
 
     return () => clearInterval(interval);
   }, [logout, fetchUser]);
@@ -99,7 +99,7 @@ const login = async (username, password) => {
   const register = async (username, password) => {
     try {
       await axios.post('/register', { username, password });
-      navigate('/');  // Optionally redirect to login after registration
+      navigate('/');  
     } catch (error) {
       console.error('Registration error', error);
       throw error;

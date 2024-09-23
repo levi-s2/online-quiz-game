@@ -193,6 +193,21 @@ api.add_resource(Protected, '/protected', endpoint='protected_endpoint')
 api.add_resource(Authenticate, '/authenticate', endpoint='authenticate')
 
 
+class UserResource(Resource):
+    @jwt_required()
+    def get(self, id):
+        try:
+            user = User.query.get(id)
+            if not user:
+                return {"message": "User not found"}, 404
+            return user.to_dict(), 200
+        except Exception as e:
+            return {"error": str(e)}, 500
+        
+api.add_resource(UserResource, '/users/<int:id>')
+
+
+
 with app.app_context():
     db.create_all()
 
