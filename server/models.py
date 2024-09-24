@@ -36,11 +36,27 @@ class User(db.Model):
         assert username is not None and len(username) > 0, "Username must not be empty"
         return username
 
+    def calculate_average_score(self):
+        total_score = 0
+        total_quizzes = len(self.scores)
+        if total_quizzes == 0:
+            return 0
+        
+        for score in self.scores:
+            quiz = score.quiz
+            number_of_questions = len(quiz.questions)
+            if number_of_questions > 0:
+                total_score += (score.points / number_of_questions) * 100
+
+        return total_score / total_quizzes
+
     def to_dict(self):
         return {
             'id': self.id,
             'username': self.username,
             'dark_mode': self.dark_mode,
+            'average_score': self.calculate_average_score(),
+            'total_quizzes_completed': len(self.scores),
             'quizzes': [quiz.to_dict_basic() for quiz in self.quizzes],
             'scores': [score.to_dict() for score in self.scores]
         }
@@ -163,7 +179,7 @@ class Score(db.Model):
     points = db.Column(Integer, nullable=False)
 
     user = relationship('User', back_populates='scores')
-    quiz = relationship('Quiz', back_populates='score')  # Ensure this matches the 'score' relationship in Quiz
+    quiz = relationship('Quiz', back_populates='score') 
 
     def to_dict(self):
         return {

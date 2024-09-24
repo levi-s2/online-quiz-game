@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Button, message } from 'antd';
+import { Layout, Menu, Button, message, Alert } from 'antd';
 import axios from './axiosConfig';
 
 const { Sider, Content } = Layout;
@@ -9,8 +9,9 @@ const Quiz = () => {
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState(null); // Track selected answer
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
+  const [quizCompleted, setQuizCompleted] = useState(false);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -35,7 +36,7 @@ const Quiz = () => {
         const response = await axios.get(`/quizzes/by_category?category=${selectedCategory}`);
         if (response.data.length > 0) {
           setQuizData(response.data[0]);
-          setCurrentQuestionIndex(0); // Reset to first question
+          setCurrentQuestionIndex(0);
         } else {
           setQuizData(null);
         }
@@ -51,33 +52,54 @@ const Quiz = () => {
     setSelectedCategory(category);
     setQuizData(null);
     setSelectedAnswer(null);
-    setScore(0); // Reset score on category change
+    setScore(0);
+    setQuizCompleted(false);
   };
 
   const handleAnswerSelect = (option) => {
     setSelectedAnswer(option);
   };
 
-  const handleNextQuestion = () => {
+  const handleNextQuestion = async () => {
     if (!selectedAnswer) {
       message.warning('Please select an answer before proceeding.');
       return;
     }
 
-    // Check if the selected answer is correct
     if (selectedAnswer.is_correct) {
       setScore((prevScore) => prevScore + 1);
     }
 
-    // Move to the next question or finish the quiz
     if (currentQuestionIndex < quizData.questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
     } else {
-      message.success(`Quiz completed! You scored ${score + (selectedAnswer.is_correct ? 1 : 0)} out of ${quizData.questions.length}.`);
+      setQuizCompleted(true);
+      await handleSubmitQuiz(); // Call the function to submit the score
     }
 
-    // Reset selected answer
     setSelectedAnswer(null);
+  };
+
+  // Function to submit score to the backend
+  const handleSubmitQuiz = async () => {
+    try {
+      await axios.post('/submit_score', {
+        quiz_id: quizData.id,
+        points: score + (selectedAnswer?.is_correct ? 1 : 0),
+      });
+      message.success('Score submitted successfully!');
+    } catch (error) {
+      message.error('Error submitting score. Please try again.');
+      console.error('Error submitting score:', error);
+    }
+  };
+  
+
+  const handlePlayAgain = () => {
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setScore(0);
+    setQuizCompleted(false);
   };
 
   const currentQuestion = quizData?.questions[currentQuestionIndex];
@@ -98,7 +120,7 @@ const Quiz = () => {
 
       <Layout style={{ padding: '0 24px 24px' }}>
         <Content style={{ padding: 24, margin: 0, minHeight: 280 }}>
-          {quizData && currentQuestion ? (
+          {!quizCompleted && quizData && currentQuestion ? (
             <div className="quiz-question-container">
               <div className="question-box">
                 <h2>{currentQuestion.text}</h2>
@@ -109,6 +131,7 @@ const Quiz = () => {
                     <Button
                       key={index}
                       className={`quiz-option ${selectedAnswer?.id === option.id ? 'selected' : ''}`}
+                      type={selectedAnswer?.id === option.id ? 'primary' : 'default'}
                       onClick={() => handleAnswerSelect(option)}
                     >
                       {option.text}
@@ -118,8 +141,30 @@ const Quiz = () => {
                   <p>No options available for this question</p>
                 )}
               </div>
-              <Button type="primary" onClick={handleNextQuestion} style={{ marginTop: '20px' }}>
-                {currentQuestionIndex < quizData.questions.length - 1 ? 'Next Question' : 'Submit Quiz'}
+              <Button
+                type="primary"
+                onClick={handleNextQuestion}
+                style={{ marginTop: '20px' }}
+              >
+                {currentQuestionIndex < quizData.questions.length - 1
+                  ? 'Next Question'
+                  : 'Submit Quiz'}
+              </Button>
+            </div>
+          ) : quizCompleted ? (
+            <div className="quiz-result-container">
+              <Alert
+                message="Quiz Completed"
+                description={`You scored ${score} out of ${quizData.questions.length}`}
+                type="success"
+                showIcon
+              />
+              <Button
+                type="primary"
+                onClick={handlePlayAgain}
+                style={{ marginTop: '20px' }}
+              >
+                Play Again
               </Button>
             </div>
           ) : (

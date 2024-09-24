@@ -90,6 +90,58 @@ class QuestionOptionsResource(Resource):
 api.add_resource(QuestionOptionsResource, '/questions/<int:question_id>/options')
 
 
+class LeaderboardResource(Resource):
+    def get(self):
+        users = User.query.all()
+        leaderboard = sorted(
+            [
+                {
+                    'username': user.username,
+                    'average_score': user.calculate_average_score(),
+                    'total_quizzes_completed': len(user.scores)  # Add total quizzes completed
+                }
+                for user in users
+            ],
+            key=lambda x: x['average_score'],
+            reverse=True
+        )
+        return make_response(jsonify(leaderboard), 200)
+
+api.add_resource(LeaderboardResource, '/leaderboard')
+
+
+
+class SubmitScoreResource(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            user_id = get_jwt_identity()  
+            data = request.get_json()
+            quiz_id = data.get('quiz_id')
+            points = data.get('points')
+
+            if not quiz_id or points is None:
+                return make_response(jsonify({"error": "Missing quiz_id or points"}), 400)
+
+
+            existing_score = Score.query.filter_by(user_id=user_id, quiz_id=quiz_id).first()
+
+            if existing_score:
+                existing_score.points = points
+            else:
+                new_score = Score(user_id=user_id, quiz_id=quiz_id, points=points)
+                db.session.add(new_score)
+
+            db.session.commit()
+
+            return make_response(jsonify({"message": "Score saved successfully"}), 200)
+        except Exception as e:
+            print(f"Error saving score: {e}")
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(SubmitScoreResource, '/submit_score')
+
+
 
 class Register(Resource):
     def post(self):
