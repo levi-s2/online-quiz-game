@@ -3,7 +3,6 @@ import axios from '../axiosConfig';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
 
-// Create the UserContext
 export const UserContext = createContext();
 
 export const UserProvider = ({ children }) => {
@@ -11,7 +10,6 @@ export const UserProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Function to fetch user data using token
   const fetchUser = useCallback(async (token) => {
     try {
       const decoded = jwtDecode(token);
@@ -27,7 +25,6 @@ export const UserProvider = ({ children }) => {
     }
   }, []);
 
-  // Check token and fetch user on initial load
   useEffect(() => {
     const token = localStorage.getItem('token');
     if (token) {
@@ -37,7 +34,6 @@ export const UserProvider = ({ children }) => {
     }
   }, [fetchUser]);
 
-  // Logout function
   const logout = useCallback(() => {
     localStorage.removeItem('token');
     localStorage.removeItem('refreshToken');
@@ -46,7 +42,6 @@ export const UserProvider = ({ children }) => {
     navigate('/');
   }, [navigate]);
 
-  // Function to refresh token periodically
   useEffect(() => {
     const refreshToken = async () => {
       try {
@@ -87,15 +82,13 @@ const login = async (username, password) => {
       localStorage.setItem('refreshToken', refresh_token);
       setUser(user);
       axios.defaults.headers.common['Authorization'] = `Bearer ${access_token}`;
-      navigate('/quiz');  // Redirect to /quiz instead of /quizzes
+      navigate('/quiz');  
     } catch (error) {
       console.error('Login error', error);
       throw error;
     }
   };
   
-
-  // Register function
   const register = async (username, password) => {
     try {
       await axios.post('/register', { username, password });
@@ -106,7 +99,6 @@ const login = async (username, password) => {
     }
   };
 
-  // Authentication function to verify user with password
   const authenticateUser = async (password) => {
     try {
       const response = await axios.post('/authenticate', { password });
