@@ -115,26 +115,23 @@ class SubmitScoreResource(Resource):
     @jwt_required()
     def post(self):
         try:
-            user_id = get_jwt_identity()  
+            user_id = get_jwt_identity()
             data = request.get_json()
             quiz_id = data.get('quiz_id')
             points = data.get('points')
-
-            if not quiz_id or points is None:
-                return make_response(jsonify({"error": "Missing quiz_id or points"}), 400)
-
 
             existing_score = Score.query.filter_by(user_id=user_id, quiz_id=quiz_id).first()
 
             if existing_score:
                 existing_score.points = points
+                db.session.commit()
+                return make_response(jsonify({"message": "Score updated successfully"}), 200)
             else:
                 new_score = Score(user_id=user_id, quiz_id=quiz_id, points=points)
                 db.session.add(new_score)
+                db.session.commit()
+                return make_response(jsonify({"message": "Score submitted successfully"}), 201)
 
-            db.session.commit()
-
-            return make_response(jsonify({"message": "Score saved successfully"}), 200)
         except Exception as e:
             print(f"Error saving score: {e}")
             return make_response(jsonify({"error": str(e)}), 500)
@@ -142,6 +139,70 @@ class SubmitScoreResource(Resource):
 api.add_resource(SubmitScoreResource, '/submit_score')
 
 
+class SubmitQuizResource(Resource):
+    @jwt_required()
+    def post(self):
+        try:
+            data = request.get_json()
+            category_name = data.get('category')
+            questions_data = data.get('questions')
+
+            if not category_name or not questions_data:
+                return make_response(jsonify({"error": "Category and questions are required"}), 400)
+
+            if len(questions_data) < 3 or len(questions_data) > 10:
+                return make_response(jsonify({"error": "Quiz must have between 3 and 10 questions"}), 400)
+
+            # Get current user from JWT token
+            user_id = get_jwt_identity()
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
+
+            # Check if category exists
+            category = Category.query.filter_by(name=category_name.lower()).first()
+            if not category:
+                return make_response(jsonify({"error": "Category not found"}), 404)
+
+            # Create a new quiz
+            new_quiz = Quiz(user_id=user.id, category_id=category.id)
+            db.session.add(new_quiz)
+            db.session.flush()  # Flush to generate quiz ID
+
+            # Loop through each question and create the question and options
+            for question_data in questions_data:
+                question_text = question_data.get('text')
+                options_data = question_data.get('options')
+
+                if not question_text or len(options_data) != 5:
+                    return make_response(jsonify({"error": "Each question must have text and exactly 5 options"}), 400)
+
+                # Check that exactly one option is marked as correct
+                correct_options_count = sum([1 for option in options_data if option.get('is_correct')])
+                if correct_options_count != 1:
+                    return make_response(jsonify({"error": "Each question must have exactly one correct option"}), 400)
+
+                # Create a new question
+                new_question = Question(quiz_id=new_quiz.id, text=question_text)
+                db.session.add(new_question)
+                db.session.flush()
+
+                # Create the options for the question
+                for option_data in options_data:
+                    option_text = option_data.get('text')
+                    is_correct = option_data.get('is_correct', False)
+                    new_option = Option(question_id=new_question.id, text=option_text, is_correct=is_correct)
+                    db.session.add(new_option)
+
+            db.session.commit()
+            return make_response(jsonify({"message": "Quiz submitted successfully", "quiz_id": new_quiz.id}), 201)
+        
+        except Exception as e:
+            db.session.rollback()  # Rollback any changes if an error occurs
+            print(f"Error submitting quiz: {e}")
+            return make_response(jsonify({"error": "Internal Server Error"}), 500)
+
+api.add_resource(SubmitQuizResource, '/submit_quiz')
 
 class Register(Resource):
     def post(self):

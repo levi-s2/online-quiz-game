@@ -40,12 +40,12 @@ const Scoreboard = () => {
       title: 'Average Score',
       dataIndex: 'average_score',
       key: 'average_score',
-      render: (score) => `${score.toFixed(2)}%`, // Display as percentage
+      render: (score) => `${score.toFixed(2)}%`, 
       sorter: (a, b) => a.average_score - b.average_score,
     },
     {
       title: 'Total Quizzes Completed',
-      dataIndex: 'total_quizzes_completed', // Match the backend field name
+      dataIndex: 'total_quizzes_completed',
       key: 'total_quizzes_completed',
     },
   ];
@@ -64,7 +64,7 @@ const Scoreboard = () => {
       <Table 
         dataSource={leaderboardData} 
         columns={columns} 
-        rowKey="username" // Use 'username' as the unique key
+        rowKey="username" 
         pagination={{ pageSize: 10 }}
       />
     </div>

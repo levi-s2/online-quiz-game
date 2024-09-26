@@ -5,7 +5,7 @@ import { UserContext } from './context/UserContext';
 import { AppstoreOutlined, UserOutlined, LogoutOutlined, PlusOutlined, ReadOutlined } from '@ant-design/icons';
 
 const NavBar = () => {
-  const { user, logout } = useContext(UserContext); // Access user and logout from context
+  const { user, logout } = useContext(UserContext);
   const location = useLocation();
   const navigate = useNavigate();
   const [current, setCurrent] = useState('');
@@ -20,7 +20,7 @@ const NavBar = () => {
     navigate('/');
   };
 
-  if (!user) return null; // If no user is logged in, don't render the NavBar
+  if (!user) return null;
 
   const items = [
     { label: <Link to="/quiz">Quiz</Link>, key: 'quiz', icon: <AppstoreOutlined /> },

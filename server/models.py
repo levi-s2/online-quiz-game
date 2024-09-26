@@ -175,11 +175,13 @@ class Score(db.Model):
     
     id = db.Column(Integer, primary_key=True)
     user_id = db.Column(Integer, ForeignKey('users.id'), nullable=False)
-    quiz_id = db.Column(Integer, ForeignKey('quizzes.id'), nullable=False, unique=True)
+    quiz_id = db.Column(Integer, ForeignKey('quizzes.id'), nullable=False)
     points = db.Column(Integer, nullable=False)
 
+    __table_args__ = (db.UniqueConstraint('user_id', 'quiz_id', name='uq_user_quiz'),)
+
     user = relationship('User', back_populates='scores')
-    quiz = relationship('Quiz', back_populates='score') 
+    quiz = relationship('Quiz', back_populates='score')
 
     def to_dict(self):
         return {
@@ -191,3 +193,4 @@ class Score(db.Model):
 
     def __repr__(self):
         return f'<Score {self.id}. User: {self.user_id}, Quiz: {self.quiz_id}, Points: {self.points}>'
+
