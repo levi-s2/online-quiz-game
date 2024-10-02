@@ -6,7 +6,7 @@ const SubmitQuiz = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState({
     text: '',
-    options: Array(5).fill({ text: '', is_correct: false })
+    options: Array(5).fill().map(() => ({ text: '', is_correct: false })) // Ensuring each option is a distinct object
   });
   const [category, setCategory] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +48,7 @@ const SubmitQuiz = () => {
     setQuestions([...questions, currentQuestion]);
     setCurrentQuestion({
       text: '',
-      options: Array(5).fill({ text: '', is_correct: false })
+      options: Array(5).fill().map(() => ({ text: '', is_correct: false })) // Reset to distinct objects
     });
   };
 

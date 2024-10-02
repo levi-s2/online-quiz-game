@@ -42,6 +42,18 @@ class QuizResource(Resource):
 api.add_resource(QuizResource, '/quizzes')
 
 
+class QuizByIDResource(Resource):
+    def get(self, quiz_id):
+        try:
+            quiz = Quiz.query.get(quiz_id)
+            if not quiz:
+                return make_response(jsonify({"error": "Quiz not found"}), 404)
+            return make_response(jsonify(quiz.to_dict()), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+api.add_resource(QuizByIDResource, '/quizzes/<int:quiz_id>')
+
+
 class CategoryResource(Resource):
     def get(self):
         try:

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
-import Quiz from './Quiz';
+import Home from './Home'; 
 import QuizList from './QuizList';
 import UserProfile from './UserProfile';
 import Scoreboard from './Scoreboard';
@@ -38,7 +38,7 @@ const App = () => {
           element={
             <LayoutWithNavBar>
               <Routes>
-                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/quiz" element={<Home />} /> 
                 <Route path="/quizzes" element={<QuizList />} />
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/scoreboard" element={<Scoreboard />} />

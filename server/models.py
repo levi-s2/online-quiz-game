@@ -110,9 +110,15 @@ class Quiz(db.Model):
             'questions': [question.to_dict() for question in self.questions],
             'score': self.score.to_dict() if self.score else None
         }
+    def to_dict_basic(self):
+        return {
+            'id': self.id,
+            'category': self.category.name,
+        }
 
     def __repr__(self):
         return f'<Quiz {self.id}. User: {self.user_id}, Category: {self.category_id}>'
+
 
 
 class Question(db.Model):
