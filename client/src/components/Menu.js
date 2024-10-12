@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Dropdown } from 'antd';
+import { Menu, Dropdown, Button } from 'antd';
 import axios from './axiosConfig';
 
 const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizSelect }) => {
   const [quizzes, setQuizzes] = useState([]);
+  const [openDropdown, setOpenDropdown] = useState(null);
 
   useEffect(() => {
     const fetchQuizzes = async () => {
@@ -24,25 +25,34 @@ const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizS
     fetchQuizzes();
   }, [selectedCategory]);
 
+  const handleCategoryClick = (categoryName) => {
+    onCategoryChange(categoryName);
+    setOpenDropdown(openDropdown === categoryName ? null : categoryName);
+  };
+
   return (
     <Menu mode="vertical" selectedKeys={[selectedCategory]}>
       {categories.map((category) => (
-        <Dropdown
-          key={category.name}
-          overlay={
-            <Menu>
-              {quizzes.map((quiz) => (
-                <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
-                  {quiz.name}
-                </Menu.Item>
-              ))}
-            </Menu>
-          }
-        >
-          <Menu.Item onClick={() => onCategoryChange(category.name)}>
-            {category.name}
-          </Menu.Item>
-        </Dropdown>
+        <Menu.Item key={category.name}>
+          <Dropdown
+            overlay={
+              <Menu>
+                {quizzes.map((quiz) => (
+                  <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
+                    {quiz.name}
+                  </Menu.Item>
+                ))}
+              </Menu>
+            }
+            trigger={['click']}
+            visible={openDropdown === category.name}
+            onVisibleChange={(visible) => setOpenDropdown(visible ? category.name : null)}
+          >
+            <Button onClick={() => handleCategoryClick(category.name)}>
+              {category.name}
+            </Button>
+          </Dropdown>
+        </Menu.Item>
       ))}
     </Menu>
   );
