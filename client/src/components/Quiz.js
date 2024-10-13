@@ -1,8 +1,10 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { Button, message, Alert } from 'antd';
 import axios from './axiosConfig';
+import { UserContext } from './context/UserContext';
 
 const Quiz = ({ quizId }) => {
+  const { user } = useContext(UserContext);
   const [quizData, setQuizData] = useState(null);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
@@ -50,14 +52,21 @@ const Quiz = ({ quizId }) => {
   };
 
   const handleSubmitQuiz = async () => {
+    if (!user || !user.id) {
+      message.error('User is not authenticated.');
+      return;
+    }
+
     try {
       await axios.post('/submit_score', {
+        user_id: user.id, 
         quiz_id: quizData.id,
         points: score + (selectedAnswer?.is_correct ? 1 : 0),
       });
       message.success('Score submitted successfully!');
     } catch (error) {
       message.error('Error submitting score. Please try again.');
+      console.error('Error submitting score:', error);
     }
   };
 

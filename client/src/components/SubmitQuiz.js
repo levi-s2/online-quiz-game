@@ -1,12 +1,16 @@
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, message, Divider, Row, Col } from 'antd';
+import { Form, Input, Button, Checkbox, message, Divider, Row, Col, Select } from 'antd';
 import axios from './axiosConfig';
+
+const { Option } = Select;
+
+const approvedCategories = ['math', 'science', 'history', 'music', 'general knowledge'];
 
 const SubmitQuiz = () => {
   const [questions, setQuestions] = useState([]);
   const [currentQuestion, setCurrentQuestion] = useState({
     text: '',
-    options: Array(5).fill().map(() => ({ text: '', is_correct: false })) // Ensuring each option is a distinct object
+    options: Array(5).fill().map(() => ({ text: '', is_correct: false }))
   });
   const [category, setCategory] = useState('');
   const [submitting, setSubmitting] = useState(false);
@@ -48,7 +52,7 @@ const SubmitQuiz = () => {
     setQuestions([...questions, currentQuestion]);
     setCurrentQuestion({
       text: '',
-      options: Array(5).fill().map(() => ({ text: '', is_correct: false })) // Reset to distinct objects
+      options: Array(5).fill().map(() => ({ text: '', is_correct: false }))
     });
   };
 
@@ -86,11 +90,17 @@ const SubmitQuiz = () => {
       
       <Form layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="Quiz Category">
-          <Input
+          <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            placeholder="Enter the quiz category (e.g., Math, Science)"
-          />
+            onChange={setCategory}
+            placeholder="Select a category"
+          >
+            {approvedCategories.map((cat) => (
+              <Option key={cat} value={cat}>
+                {cat.charAt(0).toUpperCase() + cat.slice(1)}
+              </Option>
+            ))}
+          </Select>
         </Form.Item>
 
         <Form.Item label="Question Text">

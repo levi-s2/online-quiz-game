@@ -37,18 +37,20 @@ class User(db.Model):
         return username
 
     def calculate_average_score(self):
-        total_score = 0
-        total_quizzes = len(self.scores)
-        if total_quizzes == 0:
-            return 0
-        
+        total_points = 0
+        total_questions = 0
         for score in self.scores:
             quiz = score.quiz
-            number_of_questions = len(quiz.questions)
-            if number_of_questions > 0:
-                total_score += (score.points / number_of_questions) * 100
+            num_questions = len(quiz.questions)
+            if num_questions > 0:
+                total_points += score.points
+                total_questions += num_questions
+        if total_questions == 0:
+            return 0
+        return (total_points / total_questions) * 100
 
-        return total_score / total_quizzes
+    def total_quizzes_played(self):
+        return len(self.scores) 
 
     def to_dict(self):
         return {
@@ -56,7 +58,7 @@ class User(db.Model):
             'username': self.username,
             'dark_mode': self.dark_mode,
             'average_score': self.calculate_average_score(),
-            'total_quizzes_completed': len(self.scores),
+            'total_quizzes_completed': self.total_quizzes_played(),
             'quizzes': [quiz.to_dict_basic() for quiz in self.quizzes],
             'scores': [score.to_dict() for score in self.scores]
         }
@@ -100,7 +102,7 @@ class Quiz(db.Model):
     user = relationship('User', back_populates='quizzes')
     category = relationship('Category', back_populates='quizzes')
     questions = relationship('Question', back_populates='quiz', cascade="all, delete-orphan")
-    score = relationship('Score', back_populates='quiz', uselist=False)  # Ensure this is properly defined
+    scores = relationship('Score', back_populates='quiz', cascade="all, delete-orphan")  # Updated to plural
 
     def to_dict(self):
         return {
@@ -108,13 +110,9 @@ class Quiz(db.Model):
             'user_id': self.user_id,
             'category': self.category.to_dict(),
             'questions': [question.to_dict() for question in self.questions],
-            'score': self.score.to_dict() if self.score else None
+            'scores': [score.to_dict() for score in self.scores]
         }
-    def to_dict_basic(self):
-        return {
-            'id': self.id,
-            'category': self.category.name,
-        }
+
 
     def __repr__(self):
         return f'<Quiz {self.id}. User: {self.user_id}, Category: {self.category_id}>'
@@ -183,11 +181,8 @@ class Score(db.Model):
     user_id = db.Column(Integer, ForeignKey('users.id'), nullable=False)
     quiz_id = db.Column(Integer, ForeignKey('quizzes.id'), nullable=False)
     points = db.Column(Integer, nullable=False)
-
-    __table_args__ = (db.UniqueConstraint('user_id', 'quiz_id', name='uq_user_quiz'),)
-
     user = relationship('User', back_populates='scores')
-    quiz = relationship('Quiz', back_populates='score')
+    quiz = relationship('Quiz', back_populates='scores')
 
     def to_dict(self):
         return {
@@ -199,4 +194,3 @@ class Score(db.Model):
 
     def __repr__(self):
         return f'<Score {self.id}. User: {self.user_id}, Quiz: {self.quiz_id}, Points: {self.points}>'
-

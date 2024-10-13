@@ -7,7 +7,6 @@ const Scoreboard = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Fetch leaderboard data from the backend
   useEffect(() => {
     const fetchLeaderboard = async () => {
       try {
@@ -24,7 +23,6 @@ const Scoreboard = () => {
     fetchLeaderboard();
   }, []);
 
-  // Define the columns for the table
   const columns = [
     {
       title: 'Rank',

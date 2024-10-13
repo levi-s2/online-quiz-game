@@ -110,7 +110,7 @@ class LeaderboardResource(Resource):
                 {
                     'username': user.username,
                     'average_score': user.calculate_average_score(),
-                    'total_quizzes_completed': len(user.scores)  # Add total quizzes completed
+                    'total_quizzes_completed': user.total_quizzes_played()
                 }
                 for user in users
             ],
@@ -123,6 +123,7 @@ api.add_resource(LeaderboardResource, '/leaderboard')
 
 
 
+
 class SubmitScoreResource(Resource):
     @jwt_required()
     def post(self):
@@ -131,18 +132,10 @@ class SubmitScoreResource(Resource):
             data = request.get_json()
             quiz_id = data.get('quiz_id')
             points = data.get('points')
-
-            existing_score = Score.query.filter_by(user_id=user_id, quiz_id=quiz_id).first()
-
-            if existing_score:
-                existing_score.points = points
-                db.session.commit()
-                return make_response(jsonify({"message": "Score updated successfully"}), 200)
-            else:
-                new_score = Score(user_id=user_id, quiz_id=quiz_id, points=points)
-                db.session.add(new_score)
-                db.session.commit()
-                return make_response(jsonify({"message": "Score submitted successfully"}), 201)
+            new_score = Score(user_id=user_id, quiz_id=quiz_id, points=points)
+            db.session.add(new_score)
+            db.session.commit()
+            return make_response(jsonify({"message": "Score submitted successfully"}), 201)
 
         except Exception as e:
             print(f"Error saving score: {e}")
