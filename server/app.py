@@ -108,6 +108,7 @@ class LeaderboardResource(Resource):
         leaderboard = sorted(
             [
                 {
+                    'id': user.id,
                     'username': user.username,
                     'average_score': user.calculate_average_score(),
                     'total_quizzes_completed': user.total_quizzes_played()
@@ -312,7 +313,6 @@ api.add_resource(Authenticate, '/authenticate', endpoint='authenticate')
 
 
 class UserResource(Resource):
-    @jwt_required()
     def get(self, id):
         try:
             user = User.query.get(id)
@@ -323,6 +323,56 @@ class UserResource(Resource):
             return {"error": str(e)}, 500
         
 api.add_resource(UserResource, '/users/<int:id>')
+
+
+class FriendsResource(Resource):
+    @jwt_required()
+    def post(self):
+        """Add a friend"""
+        try:
+            user_id = get_jwt_identity()
+            data = request.get_json()
+            friend_id = data.get('friend_id')
+            friend = User.query.get(friend_id)
+            if not friend:
+                return make_response(jsonify({"error": "User not found"}), 404)
+
+            user = User.query.get(user_id)
+
+            if friend in user.friends:
+                return make_response(jsonify({"message": "Already friends"}), 400)
+
+            user.friends.append(friend)
+            db.session.commit()
+
+            return make_response(jsonify({"message": "Friend added successfully"}), 201)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @jwt_required()
+    def delete(self):
+        """Remove a friend"""
+        try:
+            user_id = get_jwt_identity()
+            data = request.get_json()
+            friend_id = data.get('friend_id')
+            user = User.query.get(user_id)
+            friend = User.query.get(friend_id)
+
+            if not friend:
+                return make_response(jsonify({"error": "User not found"}), 404)
+            if friend not in user.friends:
+                return make_response(jsonify({"message": "Not friends"}), 400)
+            user.friends.remove(friend)
+            db.session.commit()
+
+            return make_response(jsonify({"message": "Friend removed successfully"}), 200)
+
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(FriendsResource, '/friends')
 
 
 

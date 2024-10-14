@@ -7,6 +7,14 @@ metadata = MetaData()
 db = SQLAlchemy(metadata=metadata)
 bcrypt = Bcrypt()
 
+
+friends = db.Table(
+    'friends',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
+)
+
+
 class User(db.Model):
     __tablename__ = 'users'
     
@@ -17,6 +25,13 @@ class User(db.Model):
 
     quizzes = relationship('Quiz', back_populates='user')
     scores = relationship('Score', back_populates='user')
+    friends = relationship(
+        'User',
+        secondary='friends',  
+        primaryjoin='User.id==friends.c.user_id',
+        secondaryjoin='User.id==friends.c.friend_id',
+        backref='friend_of'
+    )
 
     @property
     def password_hash(self):
@@ -60,7 +75,8 @@ class User(db.Model):
             'average_score': self.calculate_average_score(),
             'total_quizzes_completed': self.total_quizzes_played(),
             'quizzes': [quiz.to_dict_basic() for quiz in self.quizzes],
-            'scores': [score.to_dict() for score in self.scores]
+            'scores': [score.to_dict() for score in self.scores],
+            'friends': [{'id': friend.id, 'username': friend.username} for friend in self.friends]  # Return friend data
         }
 
     def __repr__(self):

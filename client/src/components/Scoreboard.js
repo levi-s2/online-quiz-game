@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from './axiosConfig';
 import { Table, Spin, Alert } from 'antd';
+import { Link } from 'react-router-dom';
 
 const Scoreboard = () => {
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -33,6 +34,11 @@ const Scoreboard = () => {
       title: 'Username',
       dataIndex: 'username',
       key: 'username',
+      render: (username, record) => (
+        <Link to={`/user/${record.id}`}>
+          {username}
+        </Link>
+      ),
     },
     {
       title: 'Average Score',
@@ -62,7 +68,7 @@ const Scoreboard = () => {
       <Table 
         dataSource={leaderboardData} 
         columns={columns} 
-        rowKey="username" 
+        rowKey="id"
         pagination={{ pageSize: 10 }}
       />
     </div>

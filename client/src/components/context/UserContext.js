@@ -74,7 +74,7 @@ export const UserProvider = ({ children }) => {
   }, [logout, fetchUser]);
 
   
-const login = async (username, password) => {
+  const login = async (username, password) => {
     try {
       const response = await axios.post('/login', { username, password });
       const { access_token, refresh_token, user } = response.data;
@@ -109,6 +109,39 @@ const login = async (username, password) => {
     }
   };
 
+  const addFriend = async (friendId) => {
+    try {
+      await axios.post('/friends', { friend_id: friendId });
+      fetchUser(localStorage.getItem('token'));  
+    } catch (error) {
+      console.error('Error adding friend:', error);
+    }
+  };
+
+  const deleteFriend = async (friendId) => {
+    try {
+      await axios.delete('/friends', { data: { friend_id: friendId } });
+      fetchUser(localStorage.getItem('token')); 
+    } catch (error) {
+      console.error('Error removing friend:', error);
+    }
+  };
+
+  const fetchUserDetailsById = async (id) => {
+    try {
+      const response = await axios.get(`/users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      throw error;
+    }
+  };
+  
+
   return (
     <UserContext.Provider
       value={{
@@ -118,6 +151,9 @@ const login = async (username, password) => {
         authenticateUser,
         logout,
         loading,
+        addFriend,
+        deleteFriend,
+        fetchUserDetailsById
       }}
     >
       {children}

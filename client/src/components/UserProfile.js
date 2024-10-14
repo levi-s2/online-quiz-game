@@ -1,6 +1,7 @@
 import React, { useContext } from 'react';
 import { UserContext } from './context/UserContext'; 
 import { Card, Spin, Alert } from 'antd';
+import defaultAvatar from '../css/avatar-15.png'; 
 
 const UserProfile = () => {
   const { user, loading } = useContext(UserContext);
@@ -14,29 +15,28 @@ const UserProfile = () => {
   }
 
   return (
-    <div className="profile-container">
-      <div className="left-column">
-        <Card className="profile-card">
+    <div className="profile-container" style={{ display: 'flex', padding: '20px' }}>
+      <div className="left-column" style={{ flex: 1, marginRight: '20px' }}>
+        <Card className="profile-card" style={{ textAlign: 'center' }}>
           <img
-            src={'/path/to/avatar/image.png'} 
+            src={defaultAvatar} 
             alt="User Avatar"
             className="profile-image"
+            style={{ width: '150px', borderRadius: '50%', marginBottom: '20px' }}
           />
-          <div className="profile-info">
-            <h2>{user.username}</h2>
-            <p>Average Quiz Score: {user.average_score?.toFixed(2)}%</p>
-            <p>Total Quizzes Completed: {user.total_quizzes_completed || 0}</p>
-          </div>
+          <h2>{user.username}</h2>
         </Card>
       </div>
-      <div className="center-column">
+
+      <div className="center-column" style={{ flex: 2 }}>
         <h3>User's Quiz Performance</h3>
         <Card>
           <p><strong>Average Score:</strong> {user.average_score?.toFixed(2)}%</p>
           <p><strong>Total Quizzes Completed:</strong> {user.total_quizzes_completed || 0}</p>
         </Card>
       </div>
-      <div className="right-column">
+
+      <div className="right-column" style={{ flex: 1, marginLeft: '20px' }}>
         <h3>Friends</h3>
         <Card>
           <p>No friends added yet.</p>
