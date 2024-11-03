@@ -112,20 +112,26 @@ export const UserProvider = ({ children }) => {
   const addFriend = async (friendId) => {
     try {
       await axios.post('/friends', { friend_id: friendId });
-      fetchUser(localStorage.getItem('token'));  
+      const updatedUser = await fetchUser(localStorage.getItem('token')); // Fetch updated data
+      return updatedUser;
     } catch (error) {
       console.error('Error adding friend:', error);
+      throw error;
     }
   };
-
+  
   const deleteFriend = async (friendId) => {
     try {
       await axios.delete('/friends', { data: { friend_id: friendId } });
-      fetchUser(localStorage.getItem('token')); 
+      const updatedUser = await fetchUser(localStorage.getItem('token')); // Fetch updated data
+      return updatedUser;
     } catch (error) {
       console.error('Error removing friend:', error);
+      throw error;
     }
   };
+  
+  
 
   const fetchUserDetailsById = async (id) => {
     try {

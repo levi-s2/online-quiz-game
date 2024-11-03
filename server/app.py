@@ -1,5 +1,5 @@
-from flask import Flask, jsonify, request, make_response
 from flask_migrate import Migrate
+from flask import Flask, jsonify, request, make_response
 from flask_cors import CORS
 from flask_restful import Api, Resource
 from flask_jwt_extended import JWTManager, create_access_token, create_refresh_token, jwt_required, get_jwt_identity
@@ -311,66 +311,60 @@ api.add_resource(TokenRefresh, '/refresh', endpoint='refresh_endpoint')
 api.add_resource(Protected, '/protected', endpoint='protected_endpoint')
 api.add_resource(Authenticate, '/authenticate', endpoint='authenticate')
 
-
 class UserResource(Resource):
+    @jwt_required()
     def get(self, id):
         try:
+            # Fetch the user based on ID
             user = User.query.get(id)
             if not user:
                 return {"message": "User not found"}, 404
-            return user.to_dict(), 200
+
+            # Convert user to dictionary format
+            user_data = user.to_dict()
+            print("Fetched user data:", user_data)  # Debugging log
+
+            return user_data, 200
+
         except Exception as e:
-            return {"error": str(e)}, 500
-        
+            print(f"Error fetching user: {e}")
+            import traceback
+            traceback.print_exc()
+            return {"message": "Internal Server Error"}, 500
+
 api.add_resource(UserResource, '/users/<int:id>')
 
 
 class FriendsResource(Resource):
     @jwt_required()
     def post(self):
-        """Add a friend"""
+        parser = reqparse.RequestParser()
+        parser.add_argument('friend_id', type=int, required=True, help="Friend ID cannot be blank.")
+        args = parser.parse_args()
+
+        current_user_id = get_jwt_identity()  # Current logged-in user
+        friend_id = args['friend_id']
+
+        # Retrieve both users
+        current_user = User.query.get(current_user_id)
+        friend_user = User.query.get(friend_id)
+
+        if not current_user or not friend_user:
+            return {"message": "User not found"}, 404
+
+        # Add each other to the friends list
+        if friend_user not in current_user.friends:
+            current_user.friends.append(friend_user)
+        if current_user not in friend_user.friends:
+            friend_user.friends.append(current_user)
+
+        # Commit the changes to the database
         try:
-            user_id = get_jwt_identity()
-            data = request.get_json()
-            friend_id = data.get('friend_id')
-            friend = User.query.get(friend_id)
-            if not friend:
-                return make_response(jsonify({"error": "User not found"}), 404)
-
-            user = User.query.get(user_id)
-
-            if friend in user.friends:
-                return make_response(jsonify({"message": "Already friends"}), 400)
-
-            user.friends.append(friend)
             db.session.commit()
-
-            return make_response(jsonify({"message": "Friend added successfully"}), 201)
-
+            return {"message": "Friend added successfully"}, 201
         except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
-
-    @jwt_required()
-    def delete(self):
-        """Remove a friend"""
-        try:
-            user_id = get_jwt_identity()
-            data = request.get_json()
-            friend_id = data.get('friend_id')
-            user = User.query.get(user_id)
-            friend = User.query.get(friend_id)
-
-            if not friend:
-                return make_response(jsonify({"error": "User not found"}), 404)
-            if friend not in user.friends:
-                return make_response(jsonify({"message": "Not friends"}), 400)
-            user.friends.remove(friend)
-            db.session.commit()
-
-            return make_response(jsonify({"message": "Friend removed successfully"}), 200)
-
-        except Exception as e:
-            return make_response(jsonify({"error": str(e)}), 500)
+            db.session.rollback()
+            return {"message": "Failed to add friend", "error": str(e)}, 500
 
 api.add_resource(FriendsResource, '/friends')
 

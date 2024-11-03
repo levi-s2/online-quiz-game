@@ -76,7 +76,7 @@ class User(db.Model):
             'total_quizzes_completed': self.total_quizzes_played(),
             'quizzes': [quiz.to_dict_basic() for quiz in self.quizzes],
             'scores': [score.to_dict() for score in self.scores],
-            'friends': [{'id': friend.id, 'username': friend.username} for friend in self.friends]  # Return friend data
+            'friends': [{'id': friend.id, 'username': friend.username} for friend in self.friends]
         }
 
     def __repr__(self):

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useState } from 'react';
+import React, { useContext, useEffect, useState, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, Button, Spin, Alert, message } from 'antd';
 import { UserContext } from './context/UserContext'; 
@@ -12,43 +12,53 @@ const UserDetails = () => {
   const [isFriend, setIsFriend] = useState(false); 
   const navigate = useNavigate();
 
+  const loadUserDetails = useCallback(async (userId) => {
+    try {
+      console.log(`Fetching details for user with id: ${userId}`);
+      const data = await fetchUserDetailsById(userId);
+      console.log("Fetched user details:", data);
+      setUserDetails(data);
+      setIsFriend(user?.friends.some(friend => friend.id === parseInt(userId)));
+      console.log("Is friend:", isFriend);
+    } catch (error) {
+      console.error('Error fetching user details:', error);
+      message.error('Error fetching user details');
+    } finally {
+      setLoading(false);
+    }
+  }, [fetchUserDetailsById, user, isFriend]);
+
   useEffect(() => {
-    const fetchUserDetails = async () => {
-      if (user && user.id === parseInt(id)) {
-        navigate('/profile');
-        return;
-      }
-
-      try {
-        const data = await fetchUserDetailsById(id);
-        setUserDetails(data);
-        setLoading(false);
-        const isFriendCheck = user?.friends.some(friend => friend.id === parseInt(id));
-        setIsFriend(isFriendCheck);
-      } catch (error) {
-        console.error('Error fetching user details:', error);
-        setLoading(false);
-      }
-    };
-
-    fetchUserDetails();
-  }, [id, user, navigate, fetchUserDetailsById]); 
+    if (user && user.id === parseInt(id)) {
+      navigate('/profile');
+    } else {
+      setLoading(true);
+      loadUserDetails(id);
+    }
+  }, [id, user, navigate, loadUserDetails]);
 
   const handleAddFriend = async () => {
     try {
       await addFriend(userDetails.id);
       setIsFriend(true);
       message.success('Friend added successfully!');
+      
+      // Re-fetch the user details to update the friend list in userDetails
+      const updatedUserDetails = await fetchUserDetailsById(id);
+      console.log("Updated user after adding friend:", updatedUserDetails); // Debugging log
+      setUserDetails(updatedUserDetails); // Force update the userDetails with latest data
     } catch (error) {
       message.error('Error adding friend.');
     }
   };
+  
 
   const handleDeleteFriend = async () => {
     try {
       await deleteFriend(userDetails.id);
       setIsFriend(false);
       message.success('Friend removed successfully!');
+      loadUserDetails(id); // Refresh the visited user's details
     } catch (error) {
       message.error('Error removing friend.');
     }
@@ -61,6 +71,8 @@ const UserDetails = () => {
   if (!userDetails) {
     return <Alert message="Error" description="User not found" type="error" />;
   }
+
+  console.log("Rendering userDetails with friends:", userDetails.friends);
 
   return (
     <div className="profile-container" style={{ display: 'flex', padding: '20px' }}>

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { UserContext } from './context/UserContext'; 
-import { Card, Spin, Alert } from 'antd';
+import { Card, Spin, Alert, List } from 'antd';
 import defaultAvatar from '../css/avatar-15.png'; 
 
 const UserProfile = () => {
@@ -39,7 +39,21 @@ const UserProfile = () => {
       <div className="right-column" style={{ flex: 1, marginLeft: '20px' }}>
         <h3>Friends</h3>
         <Card>
-          <p>No friends added yet.</p>
+          {user.friends && user.friends.length > 0 ? (
+            <List
+              itemLayout="horizontal"
+              dataSource={user.friends}
+              renderItem={(friend) => (
+                <List.Item>
+                  <List.Item.Meta
+                    title={friend.username}
+                  />
+                </List.Item>
+              )}
+            />
+          ) : (
+            <p>No friends added yet.</p>
+          )}
         </Card>
       </div>
     </div>
