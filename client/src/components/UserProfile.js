@@ -1,10 +1,21 @@
 import React, { useContext } from 'react';
 import { UserContext } from './context/UserContext'; 
-import { Card, Spin, Alert, List } from 'antd';
+import { Card, Spin, Alert, List, Button, message } from 'antd';
+import { Link } from 'react-router-dom';
+import { DeleteOutlined } from '@ant-design/icons';
 import defaultAvatar from '../css/avatar-15.png'; 
 
 const UserProfile = () => {
-  const { user, loading } = useContext(UserContext);
+  const { user, loading, deleteFriend } = useContext(UserContext);
+
+  const handleDeleteFriend = async (friendId) => {
+    try {
+      await deleteFriend(friendId);
+      message.success('Friend removed successfully!');
+    } catch (error) {
+      message.error('Error removing friend.');
+    }
+  };
 
   if (loading) {
     return <Spin size="large" />;
@@ -44,9 +55,17 @@ const UserProfile = () => {
               itemLayout="horizontal"
               dataSource={user.friends}
               renderItem={(friend) => (
-                <List.Item>
+                <List.Item
+                  actions={[
+                    <Button
+                      type="link"
+                      icon={<DeleteOutlined />}
+                      onClick={() => handleDeleteFriend(friend.id)}
+                    />
+                  ]}
+                >
                   <List.Item.Meta
-                    title={friend.username}
+                    title={<Link to={`/user/${friend.id}`}>{friend.username}</Link>}
                   />
                 </List.Item>
               )}

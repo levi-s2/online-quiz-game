@@ -309,7 +309,7 @@ api.add_resource(Register, '/register', endpoint='register_endpoint')
 api.add_resource(Login, '/login', endpoint='login_endpoint')
 api.add_resource(TokenRefresh, '/refresh', endpoint='refresh_endpoint')
 api.add_resource(Protected, '/protected', endpoint='protected_endpoint')
-api.add_resource(Authenticate, '/authenticate', endpoint='authenticate')
+api.add_resource(Authenticate, '/authenticate')
 
 class UserResource(Resource):
     @jwt_required()
@@ -338,33 +338,69 @@ api.add_resource(UserResource, '/users/<int:id>')
 class FriendsResource(Resource):
     @jwt_required()
     def post(self):
-        parser = reqparse.RequestParser()
-        parser.add_argument('friend_id', type=int, required=True, help="Friend ID cannot be blank.")
-        args = parser.parse_args()
-
-        current_user_id = get_jwt_identity()  # Current logged-in user
-        friend_id = args['friend_id']
-
-        # Retrieve both users
-        current_user = User.query.get(current_user_id)
-        friend_user = User.query.get(friend_id)
-
-        if not current_user or not friend_user:
-            return {"message": "User not found"}, 404
-
-        # Add each other to the friends list
-        if friend_user not in current_user.friends:
-            current_user.friends.append(friend_user)
-        if current_user not in friend_user.friends:
-            friend_user.friends.append(current_user)
-
-        # Commit the changes to the database
+        """Add a friend"""
         try:
-            db.session.commit()
-            return {"message": "Friend added successfully"}, 201
+            user_id = get_jwt_identity()
+            data = request.get_json()
+            friend_id = data.get('friend_id')
+            friend = User.query.get(friend_id)
+            if not friend:
+                return make_response(jsonify({"error": "User not found"}), 404)
+
+            user = User.query.get(user_id)
+
+            if friend in user.friends:
+                return make_response(jsonify({"message": "Already friends"}), 400)
+
+            user.friends.append(friend)
+            friend.friends.append(user)  # Ensure bidirectional friendship
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Database commit failed: {e}")
+                traceback.print_exc()
+                return make_response(jsonify({"error": "Database commit failed"}), 500)
+
+            return make_response(jsonify({"message": "Friend added successfully", "user": user.to_dict(), "friend": friend.to_dict()}), 201)
+
         except Exception as e:
-            db.session.rollback()
-            return {"message": "Failed to add friend", "error": str(e)}, 500
+            print(f"Error adding friend: {e}")
+            traceback.print_exc()
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    @jwt_required()
+    def delete(self):
+        """Remove a friend"""
+        try:
+            user_id = get_jwt_identity()
+            data = request.get_json()
+            friend_id = data.get('friend_id')
+            user = User.query.get(user_id)
+            friend = User.query.get(friend_id)
+
+            if not friend:
+                return make_response(jsonify({"error": "User not found"}), 404)
+            if friend not in user.friends:
+                return make_response(jsonify({"message": "Not friends"}), 400)
+            
+            user.friends.remove(friend)
+            if user in friend.friends:
+                friend.friends.remove(user)  # Ensure bidirectional friendship removal
+            try:
+                db.session.commit()
+            except Exception as e:
+                db.session.rollback()
+                print(f"Database commit failed: {e}")
+                traceback.print_exc()
+                return make_response(jsonify({"error": "Database commit failed"}), 500)
+
+            return make_response(jsonify({"message": "Friend removed successfully", "user": user.to_dict(), "friend": friend.to_dict()}), 200)
+
+        except Exception as e:
+            print(f"Error removing friend: {e}")
+            traceback.print_exc()
+            return make_response(jsonify({"error": str(e)}), 500)
 
 api.add_resource(FriendsResource, '/friends')
 
