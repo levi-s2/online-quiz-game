@@ -1,7 +1,12 @@
+// Scoreboard.js
+
 import React, { useState, useEffect } from 'react';
 import axios from './axiosConfig';
-import { Table, Spin, Alert } from 'antd';
+import { Table, Spin, Alert, Card, Typography } from 'antd';
 import { Link } from 'react-router-dom';
+import '../css/App.css';
+
+const { Title } = Typography;
 
 const Scoreboard = () => {
   const [leaderboardData, setLeaderboardData] = useState([]);
@@ -35,7 +40,7 @@ const Scoreboard = () => {
       dataIndex: 'username',
       key: 'username',
       render: (username, record) => (
-        <Link to={`/user/${record.id}`}>
+        <Link to={`/user/${record.id}`} className="username-link">
           {username}
         </Link>
       ),
@@ -63,14 +68,17 @@ const Scoreboard = () => {
   }
 
   return (
-    <div>
-      <h1>Scoreboard</h1>
-      <Table 
-        dataSource={leaderboardData} 
-        columns={columns} 
-        rowKey="id"
-        pagination={{ pageSize: 10 }}
-      />
+    <div className="scoreboard-container">
+      <Card className="scoreboard-card">
+        <Title level={2} className="scoreboard-title">Scoreboard</Title>
+        <Table 
+          dataSource={leaderboardData} 
+          columns={columns} 
+          rowKey="id"
+          pagination={{ pageSize: 10 }}
+          bordered
+        />
+      </Card>
     </div>
   );
 };

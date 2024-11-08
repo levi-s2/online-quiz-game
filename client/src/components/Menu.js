@@ -1,6 +1,12 @@
+// MenuComponent.js
+
 import React, { useState, useEffect } from 'react';
-import { Menu, Dropdown, Button } from 'antd';
+import { Layout, Menu, Dropdown, Button } from 'antd';
 import axios from './axiosConfig';
+import { DownOutlined } from '@ant-design/icons';
+import '../css/App.css';
+
+const { Sider } = Layout;
 
 const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizSelect }) => {
   const [quizzes, setQuizzes] = useState([]);
@@ -31,30 +37,32 @@ const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizS
   };
 
   return (
-    <Menu mode="vertical" selectedKeys={[selectedCategory]}>
-      {categories.map((category) => (
-        <Menu.Item key={category.name}>
-          <Dropdown
-            overlay={
-              <Menu>
-                {quizzes.map((quiz) => (
-                  <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
-                    {quiz.name}
-                  </Menu.Item>
-                ))}
-              </Menu>
-            }
-            trigger={['click']}
-            visible={openDropdown === category.name}
-            onVisibleChange={(visible) => setOpenDropdown(visible ? category.name : null)}
-          >
-            <Button onClick={() => handleCategoryClick(category.name)}>
-              {category.name}
-            </Button>
-          </Dropdown>
-        </Menu.Item>
-      ))}
-    </Menu>
+    <Sider width={200} className="menu-sider">
+      <Menu mode="inline" selectedKeys={[selectedCategory]} className="category-menu">
+        {categories.map((category) => (
+          <Menu.Item key={category.name}>
+            <Dropdown
+              overlay={
+                <Menu>
+                  {quizzes.map((quiz) => (
+                    <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
+                      {quiz.name}
+                    </Menu.Item>
+                  ))}
+                </Menu>
+              }
+              trigger={['click']}
+              visible={openDropdown === category.name}
+              onVisibleChange={(visible) => setOpenDropdown(visible ? category.name : null)}
+            >
+              <Button onClick={() => handleCategoryClick(category.name)} className="category-button">
+                {category.name} <DownOutlined />
+              </Button>
+            </Dropdown>
+          </Menu.Item>
+        ))}
+      </Menu>
+    </Sider>
   );
 };
 

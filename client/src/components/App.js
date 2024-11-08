@@ -1,14 +1,16 @@
+// App.js
+
 import React, { useContext } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
 import Home from './Home'; 
-import QuizList from './QuizList';
 import UserProfile from './UserProfile';
 import UserDetails from './UserDetails';
 import Scoreboard from './Scoreboard';
 import SubmitQuiz from './SubmitQuiz';
 import NavBar from './NavBar';
 import { UserContext, UserProvider } from './context/UserContext';
+import '../css/App.css';
 
 const LayoutWithNavBar = ({ children }) => {
   const { user, loading } = useContext(UserContext);
@@ -23,8 +25,8 @@ const LayoutWithNavBar = ({ children }) => {
 
   return (
     <div>
-      <NavBar />
-      {children}
+      <NavBar className="navbar" /> {/* Add the navbar class */}
+      <div className="main-layout">{children}</div> {/* Wrap children in main-layout */}
     </div>
   );
 };
@@ -40,7 +42,6 @@ const App = () => {
             <LayoutWithNavBar>
               <Routes>
                 <Route path="/quiz" element={<Home />} /> 
-                <Route path="/quizzes" element={<QuizList />} />
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/user/:id" element={<UserDetails />} />
                 <Route path="/scoreboard" element={<Scoreboard />} />

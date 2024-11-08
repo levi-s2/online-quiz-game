@@ -1,7 +1,12 @@
+// Quiz.js
+
 import React, { useState, useEffect, useContext } from 'react';
-import { Button, message, Alert } from 'antd';
+import { Button, message, Alert, Card, Typography } from 'antd';
 import axios from './axiosConfig';
 import { UserContext } from './context/UserContext';
+import '../css/App.css';
+
+const { Text } = Typography;
 
 const Quiz = ({ quizId }) => {
   const { user } = useContext(UserContext);
@@ -59,7 +64,7 @@ const Quiz = ({ quizId }) => {
 
     try {
       await axios.post('/submit_score', {
-        user_id: user.id, 
+        user_id: user.id,
         quiz_id: quizData.id,
         points: score + (selectedAnswer?.is_correct ? 1 : 0),
       });
@@ -79,46 +84,45 @@ const Quiz = ({ quizId }) => {
   const currentQuestion = quizData?.questions[currentQuestionIndex];
 
   return (
-    <>
+    <div className="quiz-container">
       {!quizCompleted && quizData && currentQuestion ? (
-        <div>
-          <h2>{currentQuestion.text}</h2>
-          {currentQuestion.options.map((option, index) => (
-            <Button
-              key={index}
-              className={selectedAnswer?.id === option.id ? 'selected' : ''}
-              type={selectedAnswer?.id === option.id ? 'primary' : 'default'}
-              onClick={() => handleAnswerSelect(option)}
-            >
-              {option.text}
-            </Button>
-          ))}
+        <Card title={`Question ${currentQuestionIndex + 1}`} className="question-card">
+          <h3 className="question-text">{currentQuestion.text}</h3>
+          <div className="options-container">
+            {currentQuestion.options.map((option, index) => (
+              <Button
+                key={index}
+                className={`option-button ${selectedAnswer?.id === option.id ? 'selected' : ''}`}
+                type={selectedAnswer?.id === option.id ? 'primary' : 'default'}
+                onClick={() => handleAnswerSelect(option)}
+              >
+                <Text className="option-label">{String.fromCharCode(65 + index)}:</Text>
+                <Text className="option-text">{option.text}</Text>
+              </Button>
+            ))}
+          </div>
           <Button
             type="primary"
             onClick={handleNextQuestion}
-            style={{ marginTop: '20px' }}
+            className="next-button"
           >
             {currentQuestionIndex < quizData.questions.length - 1
               ? 'Next Question'
               : 'Submit Quiz'}
           </Button>
-        </div>
+        </Card>
       ) : quizCompleted ? (
-        <div>
-          <Alert
-            message="Quiz Completed"
-            description={`You scored ${score} out of ${quizData.questions.length}`}
-            type="success"
-            showIcon
-          />
-          <Button type="primary" onClick={handlePlayAgain} style={{ marginTop: '20px' }}>
-            Play Again
-          </Button>
-        </div>
+        <Alert
+          message="Quiz Completed"
+          description={`You scored ${score} out of ${quizData.questions.length}`}
+          type="success"
+          showIcon
+          className="score-alert"
+        />
       ) : (
         <p>Loading...</p>
       )}
-    </>
+    </div>
   );
 };
 

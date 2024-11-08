@@ -58,7 +58,7 @@ const UserDetails = () => {
       await deleteFriend(userDetails.id);
       setIsFriend(false);
       message.success('Friend removed successfully!');
-      loadUserDetails(id); // Refresh the visited user's details
+      loadUserDetails(id); 
     } catch (error) {
       message.error('Error removing friend.');
     }

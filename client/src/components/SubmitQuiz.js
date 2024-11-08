@@ -1,6 +1,9 @@
+// SubmitQuiz.js
+
 import React, { useState } from 'react';
-import { Form, Input, Button, Checkbox, message, Divider, Row, Col, Select } from 'antd';
+import { Form, Input, Button, Checkbox, message, Divider, Row, Col, Select, Card } from 'antd';
 import axios from './axiosConfig';
+import '../css/App.css';
 
 const { Option } = Select;
 
@@ -84,10 +87,10 @@ const SubmitQuiz = () => {
   };
 
   return (
-    <div style={{ padding: '20px' }}>
+    <div className="submit-quiz-container">
       <h1>Submit a New Quiz</h1>
       <Divider />
-      
+
       <Form layout="vertical" onFinish={handleSubmit}>
         <Form.Item label="Quiz Category">
           <Select
@@ -114,7 +117,7 @@ const SubmitQuiz = () => {
 
         <Form.Item label="Answer Options">
           {currentQuestion.options.map((option, index) => (
-            <Row key={index} style={{ marginBottom: '10px' }}>
+            <Row key={index} className="option-row">
               <Col span={20}>
                 <Input
                   placeholder={`Option ${index + 1}`}
@@ -142,16 +145,16 @@ const SubmitQuiz = () => {
 
         <h3>Questions Added ({questions.length})</h3>
         {questions.map((q, index) => (
-          <div key={index} style={{ marginBottom: '20px' }}>
-            <p><strong>Question {index + 1}:</strong> {q.text}</p>
+          <Card key={index} className="question-card" title={`Question ${index + 1}`}>
+            <p>{q.text}</p>
             <ul>
               {q.options.map((opt, i) => (
-                <li key={i} style={{ color: opt.is_correct ? 'green' : 'black' }}>
+                <li key={i} className={opt.is_correct ? 'correct-option' : ''}>
                   {opt.text} {opt.is_correct ? '(Correct)' : ''}
                 </li>
               ))}
             </ul>
-          </div>
+          </Card>
         ))}
 
         <Button

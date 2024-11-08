@@ -1,12 +1,10 @@
 from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy import MetaData, Integer, String, Boolean, Text, ForeignKey, CheckConstraint
+from sqlalchemy import Integer, String, Boolean, ForeignKey, Text
 from sqlalchemy.orm import relationship, validates
 from flask_bcrypt import Bcrypt
 
-metadata = MetaData()
-db = SQLAlchemy(metadata=metadata)
+db = SQLAlchemy()
 bcrypt = Bcrypt()
-
 
 friends = db.Table(
     'friends',
@@ -27,7 +25,7 @@ class User(db.Model):
     scores = relationship('Score', back_populates='user')
     friends = relationship(
         'User',
-        secondary='friends',  
+        secondary=friends,  
         primaryjoin='User.id==friends.c.user_id',
         secondaryjoin='User.id==friends.c.friend_id',
         backref='friend_of'
