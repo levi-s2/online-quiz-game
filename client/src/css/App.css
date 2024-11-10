@@ -168,3 +168,66 @@
 .ant-btn-primary {
   margin-top: 20px;
 }
+.landing-page {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+  background-color: #f0f2f5;
+}
+
+.landing-card {
+  width: 400px;
+  padding: 20px;
+  text-align: center;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  background-color: #ffffff;
+}
+
+.landing-title {
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+
+.play-button {
+  background-color: #ff4d4f;
+  color: white;
+  font-size: 18px;
+  height: 50px;
+  width: 100%;
+  margin-bottom: 20px;
+}
+
+.form-container {
+  margin-top: 20px;
+}
+
+.auth-form {
+  text-align: left;
+}
+
+.form-item {
+  margin-bottom: 15px;
+}
+
+.submit-button {
+  margin-top: 15px;
+}
+
+.error-message {
+  color: #ff4d4f;
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.toggle-text {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+.toggle-link {
+  padding: 0;
+  font-size: 14px;
+  color: #1890ff;
+}
