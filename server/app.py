@@ -42,6 +42,24 @@ class QuizResource(Resource):
 api.add_resource(QuizResource, '/quizzes')
 
 
+class RandomQuizResource(Resource):
+    def get(self):
+        try:
+            quiz = Quiz.query.order_by(db.func.random()).first()
+            if not quiz:
+                return make_response(jsonify({"error": "No quizzes found"}), 404)
+            quiz_dict = quiz.to_dict()  
+            print("Random quiz fetched:", quiz_dict) 
+            return make_response(jsonify(quiz_dict), 200)
+        except Exception as e:
+            print("Error fetching random quiz:", str(e))  
+            return make_response(jsonify({"error": str(e)}), 500)
+
+api.add_resource(RandomQuizResource, '/quizzes/random')
+
+
+
+
 class QuizByIDResource(Resource):
     def get(self, quiz_id):
         try:

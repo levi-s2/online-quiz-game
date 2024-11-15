@@ -3,7 +3,7 @@
 import React, { useContext } from 'react';
 import { Route, Routes, Navigate } from 'react-router-dom';
 import LandingPage from './LandingPage';
-import Home from './Home'; 
+import Quiz from './Quiz';
 import UserProfile from './UserProfile';
 import UserDetails from './UserDetails';
 import Scoreboard from './Scoreboard';
@@ -25,8 +25,8 @@ const LayoutWithNavBar = ({ children }) => {
 
   return (
     <div>
-      <NavBar className="navbar" /> {/* Add the navbar class */}
-      <div className="main-layout">{children}</div> {/* Wrap children in main-layout */}
+      <NavBar className="navbar" />
+      <div className="main-layout">{children}</div>
     </div>
   );
 };
@@ -41,7 +41,7 @@ const App = () => {
           element={
             <LayoutWithNavBar>
               <Routes>
-                <Route path="/quiz" element={<Home />} /> 
+                <Route path="/quiz" element={<Quiz />} /> 
                 <Route path="/profile" element={<UserProfile />} />
                 <Route path="/user/:id" element={<UserDetails />} />
                 <Route path="/scoreboard" element={<Scoreboard />} />

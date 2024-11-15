@@ -116,7 +116,7 @@ class Quiz(db.Model):
     user = relationship('User', back_populates='quizzes')
     category = relationship('Category', back_populates='quizzes')
     questions = relationship('Question', back_populates='quiz', cascade="all, delete-orphan")
-    scores = relationship('Score', back_populates='quiz', cascade="all, delete-orphan")  # Updated to plural
+    scores = relationship('Score', back_populates='quiz', cascade="all, delete-orphan")
 
     def to_dict(self):
         return {
@@ -127,6 +127,12 @@ class Quiz(db.Model):
             'scores': [score.to_dict() for score in self.scores]
         }
 
+    def to_dict_basic(self):
+        """Returns a minimal representation of the quiz."""
+        return {
+            'id': self.id,
+            'name': f"{self.category.name} Quiz {self.id}"
+        }
 
     def __repr__(self):
         return f'<Quiz {self.id}. User: {self.user_id}, Category: {self.category_id}>'

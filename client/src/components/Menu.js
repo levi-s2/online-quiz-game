@@ -1,34 +1,51 @@
-// MenuComponent.js
-
-import React, { useState, useEffect } from 'react';
-import { Layout, Menu, Dropdown, Button } from 'antd';
+import React, { useEffect, useState } from 'react';
+import { Layout, Menu, Dropdown, Button, message } from 'antd';
 import axios from './axiosConfig';
 import { DownOutlined } from '@ant-design/icons';
-import '../css/App.css';
 
 const { Sider } = Layout;
 
-const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizSelect }) => {
+const MenuComponent = ({ selectedCategory, onCategoryChange, onQuizSelect }) => {
+  const [categories, setCategories] = useState([]);
   const [quizzes, setQuizzes] = useState([]);
   const [openDropdown, setOpenDropdown] = useState(null);
 
   useEffect(() => {
-    const fetchQuizzes = async () => {
-      if (!selectedCategory) return;
+    const fetchCategories = async () => {
       try {
-        const response = await axios.get(`/quizzes/by_category?category=${selectedCategory}`);
-        setQuizzes(
-          response.data.map((quiz, index) => ({
-            ...quiz,
-            name: `${selectedCategory} ${index + 1}`,
-          }))
-        );
+        const response = await axios.get('/categories');
+        setCategories(response.data);
+        if (response.data.length > 0 && !selectedCategory) {
+          onCategoryChange(response.data[0].name);
+        }
       } catch (error) {
-        console.error('Error fetching quizzes:', error);
+        message.error('Failed to fetch categories. Please try again later.');
+        console.error('Error fetching categories:', error);
       }
     };
 
-    fetchQuizzes();
+    fetchCategories();
+  }, [onCategoryChange, selectedCategory]);
+
+  useEffect(() => {
+    if (selectedCategory) {
+      const fetchQuizzes = async () => {
+        try {
+          const response = await axios.get(`/quizzes/by_category?category=${selectedCategory}`);
+          // Add dynamically generated names for quizzes
+          const updatedQuizzes = response.data.map((quiz, index) => ({
+            ...quiz,
+            name: `${selectedCategory} ${index + 1}`,
+          }));
+          setQuizzes(updatedQuizzes);
+        } catch (error) {
+          message.error('Failed to fetch quizzes for the selected category.');
+          console.error('Error fetching quizzes:', error);
+        }
+      };
+
+      fetchQuizzes();
+    }
   }, [selectedCategory]);
 
   const handleCategoryClick = (categoryName) => {
@@ -38,7 +55,7 @@ const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizS
 
   return (
     <Sider width={200} className="menu-sider">
-      <Menu mode="inline" selectedKeys={[selectedCategory]} className="category-menu">
+      <Menu mode="inline" className="category-menu">
         {categories.map((category) => (
           <Menu.Item key={category.name}>
             <Dropdown
@@ -46,7 +63,7 @@ const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizS
                 <Menu>
                   {quizzes.map((quiz) => (
                     <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
-                      {quiz.name}
+                      {quiz.name} {/* Use dynamically generated name */}
                     </Menu.Item>
                   ))}
                 </Menu>
@@ -55,7 +72,7 @@ const MenuComponent = ({ categories, selectedCategory, onCategoryChange, onQuizS
               visible={openDropdown === category.name}
               onVisibleChange={(visible) => setOpenDropdown(visible ? category.name : null)}
             >
-              <Button onClick={() => handleCategoryClick(category.name)} className="category-button">
+              <Button onClick={() => handleCategoryClick(category.name)}>
                 {category.name} <DownOutlined />
               </Button>
             </Dropdown>
