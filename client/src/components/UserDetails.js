@@ -43,10 +43,9 @@ const UserDetails = () => {
       setIsFriend(true);
       message.success('Friend added successfully!');
       
-      // Re-fetch the user details to update the friend list in userDetails
       const updatedUserDetails = await fetchUserDetailsById(id);
-      console.log("Updated user after adding friend:", updatedUserDetails); // Debugging log
-      setUserDetails(updatedUserDetails); // Force update the userDetails with latest data
+      console.log("Updated user after adding friend:", updatedUserDetails);
+      setUserDetails(updatedUserDetails);
     } catch (error) {
       message.error('Error adding friend.');
     }

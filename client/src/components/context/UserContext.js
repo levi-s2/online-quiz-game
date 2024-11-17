@@ -146,7 +146,40 @@ export const UserProvider = ({ children }) => {
       throw error;
     }
   };
+
+  const fetchFavoriteCategories = async (userId) => {
+    try {
+      const response = await axios.get(`/users/${userId}/favorites`);
+      return response.data;
+    } catch (error) {
+      console.error('Error fetching favorite categories:', error);
+      throw error;
+    }
+  };
   
+  const addFavoriteCategory = async (userId, categoryId) => {
+    try {
+      const response = await axios.post(`/users/${userId}/favorites`, {
+        category_id: categoryId,
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error adding favorite category:', error);
+      throw error;
+    }
+  };
+
+  const removeFavoriteCategory = async (userId, categoryId) => {
+    try {
+      const response = await axios.delete(`/users/${userId}/favorites`, {
+        data: { category_id: categoryId },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error removing favorite category:', error);
+      throw error;
+    }
+  };
 
   return (
     <UserContext.Provider
@@ -159,7 +192,10 @@ export const UserProvider = ({ children }) => {
         loading,
         addFriend,
         deleteFriend,
-        fetchUserDetailsById
+        fetchUserDetailsById,
+        fetchFavoriteCategories,
+        addFavoriteCategory,
+        removeFavoriteCategory
       }}
     >
       {children}

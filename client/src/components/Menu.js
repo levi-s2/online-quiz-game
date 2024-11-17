@@ -32,7 +32,6 @@ const MenuComponent = ({ selectedCategory, onCategoryChange, onQuizSelect }) => 
       const fetchQuizzes = async () => {
         try {
           const response = await axios.get(`/quizzes/by_category?category=${selectedCategory}`);
-          // Add dynamically generated names for quizzes
           const updatedQuizzes = response.data.map((quiz, index) => ({
             ...quiz,
             name: `${selectedCategory} ${index + 1}`,
@@ -63,7 +62,7 @@ const MenuComponent = ({ selectedCategory, onCategoryChange, onQuizSelect }) => 
                 <Menu>
                   {quizzes.map((quiz) => (
                     <Menu.Item key={quiz.id} onClick={() => onQuizSelect(quiz.id)}>
-                      {quiz.name} {/* Use dynamically generated name */}
+                      {quiz.name}
                     </Menu.Item>
                   ))}
                 </Menu>

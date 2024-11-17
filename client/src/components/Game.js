@@ -1,71 +1,89 @@
 import React, { useState, useEffect } from 'react';
-import { Button, message, Alert, Card, Typography } from 'antd';
+import { Button, Alert, Card, Typography } from 'antd';
 
 const { Text, Title } = Typography;
 
 const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
+  const [isQuizStarted, setIsQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState(null);
   const [score, setScore] = useState(0);
   const [quizCompleted, setQuizCompleted] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   useEffect(() => {
-    console.log('Updated quizData:', quizData);
-
     if (quizData?.questions?.length) {
-      console.log('Resetting game state for new quiz');
+      setIsQuizStarted(false);
       setCurrentQuestionIndex(0);
       setScore(0);
       setQuizCompleted(false);
       setSelectedAnswer(null);
+      setTimeLeft(30);
     }
   }, [quizData]);
 
+  useEffect(() => {
+    if (!isQuizStarted || quizCompleted) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleNextQuestion();
+          return 30; 
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer); 
+  }, [isQuizStarted, quizCompleted, currentQuestionIndex]);
+
+  const handleStartQuiz = () => {
+    setIsQuizStarted(true);
+    setTimeLeft(30);
+  };
+
   const handleAnswerSelect = (option) => {
-    console.log('Answer selected:', option);
     setSelectedAnswer(option);
   };
 
   const handleNextQuestion = () => {
-    if (!selectedAnswer) {
-      message.warning('Please select an answer before proceeding.');
-      return;
-    }
-
-    console.log('Moving to the next question');
-    if (selectedAnswer.is_correct) {
+    if (selectedAnswer?.is_correct) {
       setScore((prevScore) => prevScore + 1);
     }
 
     if (currentQuestionIndex < quizData.questions.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
+      setSelectedAnswer(null);
+      setTimeLeft(30);
     } else {
-      console.log('Quiz completed');
       setQuizCompleted(true);
     }
-
-    setSelectedAnswer(null);
   };
 
   return (
     <div className="game-container">
-      {!quizData || !quizData.questions?.length ? (
+      {!quizData ? (
         <Card className="quiz-info-card">
           <Title level={4}>Select a quiz to start playing</Title>
-          <Button
-            type="primary"
-            onClick={() => {
-              console.log('Play Random Quiz button clicked');
-              onPlayRandomQuiz();
-            }}
-            loading={quizLoading}
-          >
+          <Button type="primary" onClick={onPlayRandomQuiz} loading={quizLoading}>
             Play Random Quiz
+          </Button>
+        </Card>
+      ) : !isQuizStarted ? (
+        <Card className="quiz-start-card">
+          <Title level={4}>{quizData.category.name} - Quiz {quizData.id}</Title>
+          <p>Number of Questions: {quizData.questions.length}</p>
+          <Button type="primary" onClick={handleStartQuiz} style={{ marginTop: 16 }}>
+            Play Quiz
           </Button>
         </Card>
       ) : !quizCompleted ? (
         <Card title={`Question ${currentQuestionIndex + 1}`} className="question-card">
           <h3 className="question-text">{quizData.questions[currentQuestionIndex]?.text || 'Loading...'}</h3>
+          <div className="timer-container">
+            <Text strong style={{ fontSize: '16px' }}>Time Left: {timeLeft}s</Text>
+          </div>
           <div className="options-container">
             {quizData.questions[currentQuestionIndex]?.options.map((option, index) => (
               <Button
@@ -79,7 +97,12 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
               </Button>
             ))}
           </div>
-          <Button type="primary" onClick={handleNextQuestion} className="next-button">
+          <Button
+            type="primary"
+            onClick={handleNextQuestion}
+            className="next-button"
+            disabled={!selectedAnswer}
+          >
             {currentQuestionIndex < quizData.questions.length - 1 ? 'Next Question' : 'Submit Quiz'}
           </Button>
         </Card>
@@ -92,23 +115,10 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
           className="score-alert"
           action={
             <>
-              <Button
-                onClick={() => {
-                  console.log('Play Again button clicked');
-                  onPlayAgain();
-                }}
-                style={{ marginRight: 8 }}
-              >
+              <Button onClick={onPlayAgain} style={{ marginRight: 8 }}>
                 Play Again
               </Button>
-              <Button
-                onClick={() => {
-                  console.log('Play Random Quiz button clicked after quiz completion');
-                  onPlayRandomQuiz();
-                }}
-                type="default"
-                loading={quizLoading}
-              >
+              <Button onClick={onPlayRandomQuiz} type="default" loading={quizLoading}>
                 Play Random Quiz
               </Button>
             </>

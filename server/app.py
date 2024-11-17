@@ -58,8 +58,6 @@ class RandomQuizResource(Resource):
 api.add_resource(RandomQuizResource, '/quizzes/random')
 
 
-
-
 class QuizByIDResource(Resource):
     def get(self, quiz_id):
         try:
@@ -423,7 +421,69 @@ class FriendsResource(Resource):
 api.add_resource(FriendsResource, '/friends')
 
 
+class FavoriteCategoriesResource(Resource):
+    def get(self, user_id):
+        """Get all favorite categories for a user."""
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
 
+            favorite_categories = [category.to_dict() for category in user.favorite_categories]
+            return make_response(jsonify(favorite_categories), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    def post(self, user_id):
+        """Add a category to a user's favorites."""
+        try:
+            data = request.get_json()
+            category_id = data.get('category_id')
+
+            if not category_id:
+                return make_response(jsonify({"error": "Category ID is required"}), 400)
+
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
+
+            category = Category.query.get(category_id)
+            if not category:
+                return make_response(jsonify({"error": "Category not found"}), 404)
+
+            if category in user.favorite_categories:
+                return make_response(jsonify({"message": "Category already in favorites"}), 200)
+
+            user.favorite_categories.append(category)
+            db.session.commit()
+
+            return make_response(jsonify({"message": "Category added to favorites", "category": category.to_dict()}), 201)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+    def delete(self, user_id, category_id):
+        """Remove a category from a user's favorites."""
+        try:
+            user = User.query.get(user_id)
+            if not user:
+                return make_response(jsonify({"error": "User not found"}), 404)
+
+            category = Category.query.get(category_id)
+            if not category:
+                return make_response(jsonify({"error": "Category not found"}), 404)
+
+            if category not in user.favorite_categories:
+                return make_response(jsonify({"error": "Category not in favorites"}), 400)
+
+            user.favorite_categories.remove(category)
+            db.session.commit()
+
+            return make_response(jsonify({"message": "Category removed from favorites"}), 200)
+        except Exception as e:
+            return make_response(jsonify({"error": str(e)}), 500)
+
+
+api.add_resource(FavoriteCategoriesResource, '/users/<int:user_id>/favorites', '/users/<int:user_id>/favorites/<int:category_id>')
 with app.app_context():
     db.create_all()
 

@@ -13,6 +13,13 @@ friends = db.Table(
 )
 
 
+favorite_categories = db.Table(
+    'favorite_categories',
+    db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
+    db.Column('category_id', db.Integer, db.ForeignKey('categories.id'), primary_key=True)
+)
+
+
 class User(db.Model):
     __tablename__ = 'users'
     
@@ -29,6 +36,11 @@ class User(db.Model):
         primaryjoin='User.id==friends.c.user_id',
         secondaryjoin='User.id==friends.c.friend_id',
         backref='friend_of'
+    )
+    favorite_categories = relationship(
+        'Category',
+        secondary=favorite_categories,
+        backref='users_favorited'
     )
 
     @property
@@ -63,7 +75,7 @@ class User(db.Model):
         return (total_points / total_questions) * 100
 
     def total_quizzes_played(self):
-        return len(self.scores) 
+        return len(self.scores)
 
     def to_dict(self):
         return {
@@ -74,7 +86,8 @@ class User(db.Model):
             'total_quizzes_completed': self.total_quizzes_played(),
             'quizzes': [quiz.to_dict_basic() for quiz in self.quizzes],
             'scores': [score.to_dict() for score in self.scores],
-            'friends': [{'id': friend.id, 'username': friend.username} for friend in self.friends]
+            'friends': [{'id': friend.id, 'username': friend.username} for friend in self.friends],
+            'favorite_categories': [category.to_dict() for category in self.favorite_categories]
         }
 
     def __repr__(self):

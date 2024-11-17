@@ -35,8 +35,8 @@ const Quiz = () => {
         const response = await axios.get('/quizzes/random');
         console.log('Random Quiz Response:', response.data);
         if (response.data && response.data.id) {
-            setQuizId(response.data.id); // Set the ID of the fetched random quiz
-            setQuizData(response.data); // Update quizData with the random quiz
+            setQuizId(response.data.id); 
+            setQuizData(response.data); 
         } else {
             message.error('No random quiz found.');
         }
