@@ -149,7 +149,7 @@ export const UserProvider = ({ children }) => {
 
   const fetchFavoriteCategories = async (userId) => {
     try {
-      const response = await axios.get(`/users/${userId}/favorites`);
+      const response = await axios.get(`/users/${userId}/favorite_categories`);
       return response.data;
     } catch (error) {
       console.error('Error fetching favorite categories:', error);
@@ -159,7 +159,7 @@ export const UserProvider = ({ children }) => {
   
   const addFavoriteCategory = async (userId, categoryId) => {
     try {
-      const response = await axios.post(`/users/${userId}/favorites`, {
+      const response = await axios.post(`/users/${userId}/favorite_categories`, {
         category_id: categoryId,
       });
       return response.data;
@@ -168,12 +168,10 @@ export const UserProvider = ({ children }) => {
       throw error;
     }
   };
-
+  
   const removeFavoriteCategory = async (userId, categoryId) => {
     try {
-      const response = await axios.delete(`/users/${userId}/favorites`, {
-        data: { category_id: categoryId },
-      });
+      const response = await axios.delete(`/users/${userId}/favorite_categories/${categoryId}`);
       return response.data;
     } catch (error) {
       console.error('Error removing favorite category:', error);

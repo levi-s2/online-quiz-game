@@ -48,11 +48,9 @@ class RandomQuizResource(Resource):
             quiz = Quiz.query.order_by(db.func.random()).first()
             if not quiz:
                 return make_response(jsonify({"error": "No quizzes found"}), 404)
-            quiz_dict = quiz.to_dict()  
-            print("Random quiz fetched:", quiz_dict) 
+            quiz_dict = quiz.to_dict()
             return make_response(jsonify(quiz_dict), 200)
         except Exception as e:
-            print("Error fetching random quiz:", str(e))  
             return make_response(jsonify({"error": str(e)}), 500)
 
 api.add_resource(RandomQuizResource, '/quizzes/random')
@@ -338,7 +336,6 @@ class UserResource(Resource):
 
             # Convert user to dictionary format
             user_data = user.to_dict()
-            print("Fetched user data:", user_data)  # Debugging log
 
             return user_data, 200
 
@@ -472,18 +469,17 @@ class FavoriteCategoriesResource(Resource):
             if not category:
                 return make_response(jsonify({"error": "Category not found"}), 404)
 
-            if category not in user.favorite_categories:
-                return make_response(jsonify({"error": "Category not in favorites"}), 400)
-
-            user.favorite_categories.remove(category)
-            db.session.commit()
-
-            return make_response(jsonify({"message": "Category removed from favorites"}), 200)
+            if category in user.favorite_categories:
+                user.favorite_categories.remove(category)
+                db.session.commit()
+                return make_response(jsonify({"message": "Favorite category removed"}), 200)
+            else:
+                return make_response(jsonify({"error": "Category not in user's favorites"}), 400)
         except Exception as e:
             return make_response(jsonify({"error": str(e)}), 500)
 
+api.add_resource(FavoriteCategoriesResource,'/users/<int:user_id>/favorite_categories',  '/users/<int:user_id>/favorite_categories/<int:category_id>')
 
-api.add_resource(FavoriteCategoriesResource, '/users/<int:user_id>/favorites', '/users/<int:user_id>/favorites/<int:category_id>')
 with app.app_context():
     db.create_all()
 
