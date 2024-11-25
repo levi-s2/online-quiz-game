@@ -29,7 +29,10 @@ class User(db.Model):
     dark_mode = db.Column(Boolean, default=False)
 
     quizzes = relationship('Quiz', back_populates='user')
-    scores = relationship('Score', back_populates='user')
+    scores = relationship(
+        'Score',
+        back_populates='user',
+        cascade="all, delete-orphan")
     friends = relationship(
         'User',
         secondary=friends,  

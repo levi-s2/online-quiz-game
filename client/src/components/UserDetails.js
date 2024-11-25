@@ -50,7 +50,6 @@ const UserDetails = () => {
       message.error('Error adding friend.');
     }
   };
-  
 
   const handleDeleteFriend = async () => {
     try {
@@ -71,7 +70,7 @@ const UserDetails = () => {
     return <Alert message="Error" description="User not found" type="error" />;
   }
 
-  console.log("Rendering userDetails with friends:", userDetails.friends);
+  console.log("Rendering userDetails with friends and favorite categories:", userDetails);
 
   return (
     <div className="profile-container" style={{ display: 'flex', padding: '20px' }}>
@@ -101,6 +100,19 @@ const UserDetails = () => {
         <Card>
           <p><strong>Average Score:</strong> {userDetails.average_score?.toFixed(2)}%</p>
           <p><strong>Total Quizzes Completed:</strong> {userDetails.total_quizzes_completed || 0}</p>
+        </Card>
+
+        <h3>Favorite Categories</h3>
+        <Card>
+          {userDetails.favorite_categories && userDetails.favorite_categories.length > 0 ? (
+            <ul>
+              {userDetails.favorite_categories.map((category) => (
+                <li key={category.id}>{category.name}</li>
+              ))}
+            </ul>
+          ) : (
+            <p>No favorite categories added yet.</p>
+          )}
         </Card>
       </div>
 
