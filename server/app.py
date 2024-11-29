@@ -145,11 +145,18 @@ class SubmitScoreResource(Resource):
         try:
             user_id = get_jwt_identity()
             data = request.get_json()
+            print("Received data:", data)
+
             quiz_id = data.get('quiz_id')
             points = data.get('points')
+            
+            if not quiz_id or points is None:
+                return make_response(jsonify({"error": "quiz_id and points are required"}), 400)
+
             new_score = Score(user_id=user_id, quiz_id=quiz_id, points=points)
             db.session.add(new_score)
             db.session.commit()
+
             return make_response(jsonify({"message": "Score submitted successfully"}), 201)
 
         except Exception as e:
@@ -157,6 +164,7 @@ class SubmitScoreResource(Resource):
             return make_response(jsonify({"error": str(e)}), 500)
 
 api.add_resource(SubmitScoreResource, '/submit_score')
+
 
 
 class SubmitQuizResource(Resource):

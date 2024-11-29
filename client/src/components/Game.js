@@ -1,5 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { Button, Alert, Card, Typography } from 'antd';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Button, Alert, Card, Typography, message } from 'antd';
+import axios from './axiosConfig';
 
 const { Text, Title } = Typography;
 
@@ -22,32 +23,7 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
     }
   }, [quizData]);
 
-  useEffect(() => {
-    if (!isQuizStarted || quizCompleted) return;
-
-    const timer = setInterval(() => {
-      setTimeLeft((prev) => {
-        if (prev <= 1) {
-          handleNextQuestion();
-          return 30; 
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer); 
-  }, [isQuizStarted, quizCompleted, currentQuestionIndex]);
-
-  const handleStartQuiz = () => {
-    setIsQuizStarted(true);
-    setTimeLeft(30);
-  };
-
-  const handleAnswerSelect = (option) => {
-    setSelectedAnswer(option);
-  };
-
-  const handleNextQuestion = () => {
+  const handleNextQuestion = useCallback(() => {
     if (selectedAnswer?.is_correct) {
       setScore((prevScore) => prevScore + 1);
     }
@@ -58,7 +34,48 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
       setTimeLeft(30);
     } else {
       setQuizCompleted(true);
+      submitQuizScore(); // Submit the score when the quiz is completed
     }
+  }, [currentQuestionIndex, quizData, selectedAnswer]);
+
+  useEffect(() => {
+    if (!isQuizStarted || quizCompleted) return;
+
+    const timer = setInterval(() => {
+      setTimeLeft((prev) => {
+        if (prev <= 1) {
+          handleNextQuestion();
+          return 30;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isQuizStarted, quizCompleted, handleNextQuestion]);
+
+  const submitQuizScore = async () => {
+    try {
+      console.log('Submitting score:', score, 'for quiz ID:', quizData.id);
+      await axios.post('/submit_score', {
+        quiz_id: quizData.id,
+        points: score,
+      });
+      message.success('Your score has been submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting score:', error);
+      message.error('Failed to submit your score. Please try again later.');
+    }
+  };
+  
+
+  const handleStartQuiz = () => {
+    setIsQuizStarted(true);
+    setTimeLeft(30);
+  };
+
+  const handleAnswerSelect = (option) => {
+    setSelectedAnswer(option);
   };
 
   return (

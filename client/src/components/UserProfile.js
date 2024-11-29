@@ -4,8 +4,8 @@ import { Card, List, Button, Select, Typography, Spin, Alert, message } from 'an
 import { DeleteOutlined } from '@ant-design/icons';
 import { Link } from 'react-router-dom';
 import defaultAvatar from '../css/avatar-15.png';
-import UserManagement from './UserManagement';
 import axios from './axiosConfig';
+import UserManagement from './UserManagement';
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -31,9 +31,11 @@ const UserProfile = () => {
         setLoadingFavorites(true);
         setLoadingCategories(true);
         try {
+          // Fetch user's favorite categories
           const fetchedFavorites = await fetchFavoriteCategories(user.id);
           setFavoriteCategories(fetchedFavorites);
 
+          // Fetch all categories
           const response = await axios.get('/categories');
           setCategories(response.data);
 
@@ -51,6 +53,30 @@ const UserProfile = () => {
     fetchData();
   }, [user, fetchFavoriteCategories]);
 
+  const handleAddFavoriteCategory = async (categoryId) => {
+    try {
+      await addFavoriteCategory(user.id, categoryId);
+      const updatedFavorites = await fetchFavoriteCategories(user.id);
+      setFavoriteCategories(updatedFavorites);
+      message.success('Category added to favorites!');
+    } catch (error) {
+      console.error('Error adding favorite category:', error);
+      message.error('Error adding category to favorites.');
+    }
+  };
+
+  const handleRemoveFavoriteCategory = async (categoryId) => {
+    try {
+      await removeFavoriteCategory(user.id, categoryId);
+      const updatedFavorites = await fetchFavoriteCategories(user.id);
+      setFavoriteCategories(updatedFavorites);
+      message.success('Category removed from favorites!');
+    } catch (error) {
+      console.error('Error removing favorite category:', error);
+      message.error('Error removing category from favorites.');
+    }
+  };
+
   if (loading || loadingFavorites || loadingCategories) {
     return <Spin size="large" />;
   }
@@ -64,6 +90,7 @@ const UserProfile = () => {
       <Card className="profile-card">
         <Title level={2}>User Profile</Title>
         <div className="profile-container" style={{ display: 'flex', padding: '20px' }}>
+          {/* Left Column */}
           <div className="left-column" style={{ flex: 1, marginRight: '20px' }}>
             <Card className="profile-card" style={{ textAlign: 'center' }}>
               <img
@@ -76,6 +103,7 @@ const UserProfile = () => {
             </Card>
           </div>
 
+          {/* Center Column */}
           <div className="center-column" style={{ flex: 2 }}>
             <h3>User's Quiz Performance</h3>
             <Card>
@@ -87,9 +115,53 @@ const UserProfile = () => {
               </p>
             </Card>
 
-            <UserManagement user={user} />
+            <h3>Favorite Categories</h3>
+            <Card>
+              {favoriteCategories && favoriteCategories.length > 0 ? (
+                <List
+                  itemLayout="horizontal"
+                  dataSource={favoriteCategories}
+                  renderItem={(category) => (
+                    <List.Item
+                      actions={[
+                        <Button
+                          type="link"
+                          icon={<DeleteOutlined />}
+                          onClick={() => handleRemoveFavoriteCategory(category.id)}
+                        />,
+                      ]}
+                    >
+                      <List.Item.Meta title={category.name} />
+                    </List.Item>
+                  )}
+                />
+              ) : (
+                <p>No favorite categories added yet.</p>
+              )}
+            </Card>
+
+            <h3>Select Favorite Categories</h3>
+            <Card>
+              <Select
+                style={{ width: '100%' }}
+                placeholder="Select a category to add to favorites"
+                onChange={handleAddFavoriteCategory}
+              >
+                {categories
+                  .filter(
+                    (category) =>
+                      !favoriteCategories.some((favCategory) => favCategory.id === category.id)
+                  )
+                  .map((category) => (
+                    <Option key={category.id} value={category.id}>
+                      {category.name}
+                    </Option>
+                  ))}
+              </Select>
+            </Card>
           </div>
 
+          {/* Right Column */}
           <div className="right-column" style={{ flex: 1, marginLeft: '20px' }}>
             <h3>Friends</h3>
             <Card>
@@ -119,6 +191,7 @@ const UserProfile = () => {
             </Card>
           </div>
         </div>
+        <UserManagement />
       </Card>
     </div>
   );
