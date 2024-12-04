@@ -86,14 +86,12 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-/* Title styling */
 .scoreboard-title {
   text-align: center;
   font-weight: 600;
   margin-bottom: 20px;
 }
 
-/* Username link styling */
 .username-link {
   color: #1890ff;
   text-decoration: none;
@@ -103,7 +101,6 @@
   text-decoration: underline;
 }
 
-/* Additional table styling for better spacing */
 .ant-table {
   background-color: #fafafa;
   border-radius: 8px;
@@ -230,4 +227,72 @@
   padding: 0;
   font-size: 14px;
   color: #1890ff;
+}
+.menu-sider {
+  background-color: #ffffff !important;
+  border-right: 1px solid #f0f0f0;
+}
+
+.category-menu {
+  background-color: #ffffff;
+  height: 100%;
+  overflow-y: auto; 
+}
+
+.category-menu .ant-menu-item {
+  margin: 8px 0;
+}
+
+.dropdown-button {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.user-profile {
+  padding: 20px;
+}
+
+.profile-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.top-section {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+
+.left-column {
+  flex: 1;
+  margin-right: 20px;
+}
+
+.center-column {
+  flex: 2;
+  margin-right: 20px;
+}
+
+.right-column {
+  flex: 1;
+}
+
+.profile-card {
+  text-align: center;
+  margin-bottom: 20px;
+}
+
+.profile-image {
+  width: 210px;
+  border-radius: 80%;
+  margin-bottom: 5px;
+}
+
+.user-profile h3 {
+  margin-top: 10px;
+}
+
+.user-profile .ant-card {
+  margin-bottom: 20px;
 }

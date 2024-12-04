@@ -12,13 +12,11 @@ friends = db.Table(
     db.Column('friend_id', db.Integer, db.ForeignKey('users.id'), primary_key=True)
 )
 
-
 favorite_categories = db.Table(
     'favorite_categories',
     db.Column('user_id', db.Integer, db.ForeignKey('users.id'), primary_key=True),
     db.Column('category_id', db.Integer, db.ForeignKey('categories.id'), primary_key=True)
 )
-
 
 class User(db.Model):
     __tablename__ = 'users'
@@ -180,7 +178,6 @@ class Question(db.Model):
 
     def __repr__(self):
         return f'<Question {self.id}. Quiz: {self.quiz_id}>'
-
 
 
 class Option(db.Model):

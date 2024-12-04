@@ -31,11 +31,9 @@ const UserProfile = () => {
         setLoadingFavorites(true);
         setLoadingCategories(true);
         try {
-          // Fetch user's favorite categories
           const fetchedFavorites = await fetchFavoriteCategories(user.id);
           setFavoriteCategories(fetchedFavorites);
 
-          // Fetch all categories
           const response = await axios.get('/categories');
           setCategories(response.data);
 
@@ -88,23 +86,22 @@ const UserProfile = () => {
   return (
     <div className="user-profile">
       <Card className="profile-card">
-        <Title level={2}>User Profile</Title>
-        <div className="profile-container" style={{ display: 'flex', padding: '20px' }}>
-          {/* Left Column */}
-          <div className="left-column" style={{ flex: 1, marginRight: '20px' }}>
-            <Card className="profile-card" style={{ textAlign: 'center' }}>
+        <Title level={2} className="profile-title">User Profile</Title>
+        <div className="profile-container">
+          <div className="left-column">
+            <Card className="profile-card user-info-card">
               <img
                 src={defaultAvatar}
                 alt="User Avatar"
                 className="profile-image"
-                style={{ width: '150px', borderRadius: '50%', marginBottom: '20px' }}
               />
               <h2>{user.username}</h2>
             </Card>
+            <Card className="account-management-card">
+              <UserManagement />
+            </Card>
           </div>
-
-          {/* Center Column */}
-          <div className="center-column" style={{ flex: 2 }}>
+          <div className="center-column">
             <h3>User's Quiz Performance</h3>
             <Card>
               <p>
@@ -114,7 +111,6 @@ const UserProfile = () => {
                 <strong>Total Quizzes Completed:</strong> {user.total_quizzes_completed || 0}
               </p>
             </Card>
-
             <h3>Favorite Categories</h3>
             <Card>
               {favoriteCategories && favoriteCategories.length > 0 ? (
@@ -139,7 +135,6 @@ const UserProfile = () => {
                 <p>No favorite categories added yet.</p>
               )}
             </Card>
-
             <h3>Select Favorite Categories</h3>
             <Card>
               <Select
@@ -160,9 +155,7 @@ const UserProfile = () => {
               </Select>
             </Card>
           </div>
-
-          {/* Right Column */}
-          <div className="right-column" style={{ flex: 1, marginLeft: '20px' }}>
+          <div className="right-column">
             <h3>Friends</h3>
             <Card>
               {user.friends && user.friends.length > 0 ? (
@@ -191,10 +184,9 @@ const UserProfile = () => {
             </Card>
           </div>
         </div>
-        <UserManagement />
       </Card>
     </div>
-  );
+  );   
 };
 
 export default UserProfile;

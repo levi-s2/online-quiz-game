@@ -23,20 +23,35 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
     }
   }, [quizData]);
 
+  const submitQuizScore = useCallback(async () => {
+    if (!quizData?.id) return;
+    try {
+      console.log('Submitting score:', score, 'for quiz ID:', quizData.id);
+      await axios.post('/submit_score', {
+        quiz_id: quizData.id,
+        points: score,
+      });
+      message.success('Your score has been submitted successfully!');
+    } catch (error) {
+      console.error('Error submitting score:', error);
+      message.error('Failed to submit your score. Please try again later.');
+    }
+  }, [score, quizData?.id]);
+
   const handleNextQuestion = useCallback(() => {
     if (selectedAnswer?.is_correct) {
       setScore((prevScore) => prevScore + 1);
     }
 
-    if (currentQuestionIndex < quizData.questions.length - 1) {
+    if (currentQuestionIndex < quizData?.questions?.length - 1) {
       setCurrentQuestionIndex((prevIndex) => prevIndex + 1);
       setSelectedAnswer(null);
       setTimeLeft(30);
     } else {
       setQuizCompleted(true);
-      submitQuizScore(); // Submit the score when the quiz is completed
+      submitQuizScore(); 
     }
-  }, [currentQuestionIndex, quizData, selectedAnswer]);
+  }, [currentQuestionIndex, quizData?.questions?.length, selectedAnswer, submitQuizScore]);
 
   useEffect(() => {
     if (!isQuizStarted || quizCompleted) return;
@@ -53,21 +68,6 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
 
     return () => clearInterval(timer);
   }, [isQuizStarted, quizCompleted, handleNextQuestion]);
-
-  const submitQuizScore = async () => {
-    try {
-      console.log('Submitting score:', score, 'for quiz ID:', quizData.id);
-      await axios.post('/submit_score', {
-        quiz_id: quizData.id,
-        points: score,
-      });
-      message.success('Your score has been submitted successfully!');
-    } catch (error) {
-      console.error('Error submitting score:', error);
-      message.error('Failed to submit your score. Please try again later.');
-    }
-  };
-  
 
   const handleStartQuiz = () => {
     setIsQuizStarted(true);
@@ -89,7 +89,7 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
         </Card>
       ) : !isQuizStarted ? (
         <Card className="quiz-start-card">
-          <Title level={4}>{quizData.category.name} - Quiz {quizData.id}</Title>
+          <Title level={4}>{quizData.category?.name} - Quiz {quizData.id}</Title>
           <p>Number of Questions: {quizData.questions.length}</p>
           <Button type="primary" onClick={handleStartQuiz} style={{ marginTop: 16 }}>
             Play Quiz
@@ -130,16 +130,6 @@ const Game = ({ quizData, onPlayAgain, onPlayRandomQuiz, quizLoading }) => {
           type="success"
           showIcon
           className="score-alert"
-          action={
-            <>
-              <Button onClick={onPlayAgain} style={{ marginRight: 8 }}>
-                Play Again
-              </Button>
-              <Button onClick={onPlayRandomQuiz} type="default" loading={quizLoading}>
-                Play Random Quiz
-              </Button>
-            </>
-          }
         />
       )}
     </div>

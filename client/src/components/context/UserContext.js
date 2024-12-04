@@ -112,7 +112,7 @@ export const UserProvider = ({ children }) => {
   const addFriend = async (friendId) => {
     try {
       await axios.post('/friends', { friend_id: friendId });
-      const updatedUser = await fetchUser(localStorage.getItem('token')); // Fetch updated data
+      const updatedUser = await fetchUser(localStorage.getItem('token'));
       return updatedUser;
     } catch (error) {
       console.error('Error adding friend:', error);
@@ -123,7 +123,7 @@ export const UserProvider = ({ children }) => {
   const deleteFriend = async (friendId) => {
     try {
       await axios.delete('/friends', { data: { friend_id: friendId } });
-      const updatedUser = await fetchUser(localStorage.getItem('token')); // Fetch updated data
+      const updatedUser = await fetchUser(localStorage.getItem('token'));
       return updatedUser;
     } catch (error) {
       console.error('Error removing friend:', error);
